@@ -195,7 +195,8 @@
         const sendButton = document.getElementById('send-button');
         
         // --- CRITICAL: REPLACE THIS WITH YOUR ACTUAL GEMINI API KEY ---
-        const apiKey = "AIzaSyB4-siUkaz5YDucwIZNJ72RfWVveoB6eus"
+        // 🚨 SAFETY WARNING: Do NOT share this key in the chat. Paste it here yourself.
+        const apiKey = "YOUR_GEMINI_API_KEY_HERE"; 
         
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
         
@@ -323,13 +324,17 @@
          * Core function to call the Gemini API with exponential backoff.
          */
         async function callGeminiApi(prompt, maxRetries = 5, delay = 1000) {
+            if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY_HERE") {
+                throw new Error("API Key Missing. Please insert your valid Gemini API key into the index.html file.");
+            }
+            
             for (let i = 0; i < maxRetries; i++) {
                 try {
                     const payload = {
                         contents: chatHistory,
                         systemInstruction: SYSTEM_INSTRUCTION,
                         config: {
-                            tools: [{ "google_search": {} }] // Enable Google Search for grounding
+                            tools: [{ "google_search": {} }] 
                         }
                     };
 
@@ -339,6 +344,11 @@
                         body: JSON.stringify(payload)
                     });
 
+                    if (response.status === 400 || response.status === 403) {
+                         // 400 or 403 usually means invalid key or permissions/billing issue
+                        throw new Error(`Invalid Key or Access Denied (Status ${response.status}). Please check your API key, billing setup, and ensure the Gemini API is enabled in your Google Cloud Console.`);
+                    }
+                    
                     if (!response.ok) {
                         if (response.status === 429) {
                             // Too many requests - retry with backoff
@@ -354,14 +364,17 @@
                     if (text) {
                         return text;
                     } else {
-                        throw new Error('Received empty response from the API.');
+                        throw new Error('Received an empty or malformed response from the API.');
                     }
 
                 } catch (error) {
-                    console.error(`Attempt ${i + 1} failed:`, error.message);
+                    // Log only to console, don't show retry errors to user
+                    if (!error.message.includes('Retrying')) {
+                        console.error(`Attempt ${i + 1} failed:`, error.message);
+                    }
                     if (i === maxRetries - 1) {
                         // Max retries reached
-                        throw new Error('Maximum retries reached. Could not connect to the AI. Check your API key or network status.');
+                        throw new Error('Maximum retries reached. The connection failed repeatedly. See console for details.');
                     }
                     // Exponential backoff delay
                     await new Promise(resolve => setTimeout(resolve, delay * (2 ** i)));
@@ -403,7 +416,8 @@
             } catch (error) {
                 hideTypingIndicator(indicator);
                 console.error("AI Chat Error:", error);
-                const errorMessage = `🚨 Lex 01 ran into an error: ${error.message}. Please check your API key or try a different question.`;
+                // Display a clear error message in the chat
+                const errorMessage = `🚨 Lex 01 cannot connect to the Gemini AI: **${error.message}**`;
                 appendMessage(errorMessage, 'bot');
             } finally {
                 // 7. Re-enable UI
@@ -417,8 +431,8 @@
          * Initial welcome message from Lex 01.
          */
         function initialGreeting() {
-            // Initial greeting is added to history and displayed
-            const welcomeText = "Hey! I'm **Lex 01 🎀✨**, Abhi's live AI assistant, named after his dog. I'm connected to the Gemini model now! Ask me about Abhi's **projects, skills, or anything you need to cheer up!** 🐾";
+            const keyStatus = apiKey && apiKey !== "YOUR_GEMINI_API_KEY_HERE" ? "connected" : "in DEMO mode (waiting for key)";
+            const welcomeText = `Hey! I'm **Lex 01 🎀✨**, Abhi's AI assistant, currently ${keyStatus}. Ask me about Abhi's **projects, skills, or anything you need to cheer up!** 🐾`;
             chatHistory.push({ role: "model", parts: [{ text: welcomeText }] });
             appendMessage(welcomeText, 'bot');
         }
