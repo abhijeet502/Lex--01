@@ -1,44 +1,52 @@
-export default async function handler(req,res){
-  try{
-    if(req.method!=='POST') return res.status(405).json({error:'Method Not Allowed'});
+// /api/chat.js
+export default async function handler(req, res) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method Not Allowed' });
+    }
 
-    const apiKey=process.env.OPENAI_API_KEY;
-    if(!apiKey) return res.status(500).json({error:'OPENAI_API_KEY missing'});
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+        return res.status(500).json({ error: 'Server configuration error: OPENAI_API_KEY is missing.' });
+    }
 
     const { messages } = req.body;
-    if(!messages) return res.status(400).json({error:'Missing messages in request'});
-
     const systemPrompt = {
-      role: "system",
-      content: "You are Lex 01, a cheerful AI assistant named after Abhi's dog. Answer questions about Abhi's projects, skills, tech stack. Use friendly tone, paw 🐾 or heart/shine 💖✨ emojis occasionally. Keep responses concise and relevant."
+        role: "system",
+        content: "You are Lex 01, a cheerful AI assistant named after Abhi's dog. Answer questions about Abhi's projects, skills, and tech stack. Keep responses friendly, concise, and positive. Occasionally use emojis like 🐾💖✨."
     };
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'Authorization':`Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model:"gpt-3.5-turbo",
-        messages:[systemPrompt,...messages],
-        max_tokens:300,
-        temperature:0.7
-      })
-    });
+    try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: "gpt-3.5-turbo",
+                messages: [systemPrompt, ...messages],
+                max_tokens: 300,
+                temperature: 0.7
+            })
+        });
 
-    let data;
-    try { data = await response.json(); } 
-    catch(e){ return res.status(500).json({error:'OpenAI returned non-JSON response'}); }
+        // Handle rate limit
+        if (response.status === 429) {
+            return res.status(429).json({ response: "🚨 OpenAI rate limit reached. Please wait 1 minute before trying again." });
+        }
 
-    if(!response.ok) return res.status(response.status).json({error:data.error || 'OpenAI API error'});
+        // Handle other errors
+        if (!response.ok) {
+            const errorText = await response.text();
+            return res.status(response.status).json({ response: `🚨 OpenAI API error: ${errorText.substring(0,100)}...` });
+        }
 
-    const botMessage = data.choices?.[0]?.message?.content || "Lex 01 is having trouble responding! 🐾";
+        const data = await response.json();
+        const botMessage = data.choices?.[0]?.message?.content || "Lex 01 is having a hard time focusing! Please ask again. 🐾";
+        res.status(200).json({ response: botMessage });
 
-    res.status(200).json({response: botMessage});
-
-  }catch(error){
-    console.error(error);
-    res.status(500).json({error: error.message || 'Unexpected server error'});
-  }
+    } catch (err) {
+        console.error("Serverless function error:", err);
+        res.status(500).json({ response: "🚨 Lex 01 encountered an unexpected error. Try again in a few seconds." });
+    }
 }
