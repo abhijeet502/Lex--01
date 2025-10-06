@@ -7,19 +7,19 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-body { font-family:'Inter',sans-serif; background:linear-gradient(180deg,#ffe4e6 0%,#fbcfe8 100%); display:flex; flex-direction:column; align-items:center; min-height:100vh; }
-#chat-container { max-width:600px;width:100%;display:flex;flex-direction:column;flex-grow:1;background:white;box-shadow:0 8px 30px rgba(219,39,119,0.2);border-radius:1.5rem;margin:1rem;overflow:hidden; }
-#chat-window { flex-grow:1;padding:1.5rem;overflow-y:auto;scroll-behavior:smooth; }
-.message-row { display:flex; align-items:flex-end; margin-bottom:1rem; }
-.message { max-width:85%; padding:0.75rem 1rem; border-radius:1.5rem; line-height:1.5; word-wrap:break-word; position:relative; }
-.user-row { justify-content:flex-end; }
-.user-message { background-color:#db2777;color:white;border-bottom-right-radius:0.25rem; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
-.bot-row { justify-content:flex-start; }
-.bot-message { background-color:#fbcfe8;color:#4c0519;border-bottom-left-radius:0.25rem; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column; }
-.bot-message-text { margin-bottom:0.25rem; }
-.copy-button { cursor:pointer; margin-left:0.5rem; width:20px; height:20px; color:#db2777; opacity:0.6; transition:opacity 0.1s; }
-.copy-button:hover { opacity:1; }
-.dot-flashing { position:relative;width:10px;height:10px;border-radius:5px;background-color:#db2777; animation:dot-flashing 1s infinite alternate; }
+body{font-family:'Inter',sans-serif;background:linear-gradient(180deg,#ffe4e6 0%,#fbcfe8 100%);display:flex;flex-direction:column;align-items:center;min-height:100vh;}
+#chat-container{max-width:600px;width:100%;display:flex;flex-direction:column;flex-grow:1;background:white;box-shadow:0 8px 30px rgba(219,39,119,0.2);border-radius:1.5rem;margin:1rem;overflow:hidden;}
+#chat-window{flex-grow:1;padding:1.5rem;overflow-y:auto;scroll-behavior:smooth;}
+.message-row{display:flex;align-items:flex-end;margin-bottom:1rem;}
+.message{max-width:85%;padding:0.75rem 1rem;border-radius:1.5rem;line-height:1.5;word-wrap:break-word;position:relative;}
+.user-row{justify-content:flex-end;}
+.user-message{background-color:#db2777;color:white;border-bottom-right-radius:0.25rem;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+.bot-row{justify-content:flex-start;}
+.bot-message{background-color:#fbcfe8;color:#4c0519;border-bottom-left-radius:0.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.05);display:flex;flex-direction:column;}
+.bot-message-text{margin-bottom:0.25rem;}
+.copy-button{cursor:pointer;margin-left:0.5rem;width:20px;height:20px;color:#db2777;opacity:0.6;transition:opacity 0.1s;}
+.copy-button:hover{opacity:1;}
+.dot-flashing{position:relative;width:10px;height:10px;border-radius:5px;background-color:#db2777;animation:dot-flashing 1s infinite alternate;}
 .dot-flashing::before,.dot-flashing::after{content:'';display:inline-block;position:absolute;top:0;width:10px;height:10px;border-radius:5px;background-color:#db2777;}
 .dot-flashing::before{left:-15px;animation-delay:0.5s;}
 .dot-flashing::after{left:15px;animation-delay:1s;}
