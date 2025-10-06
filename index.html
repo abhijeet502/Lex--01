@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lex 01 - Abhi's Live AI Assistant</title>
+    <title>Lex 01 - Abhi's Live AI Assistant (OpenAI)</title>
     <!-- Load Tailwind CSS for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -150,7 +150,7 @@
             <!-- Main Title Color: Light Pink (text-pink-100) on Dark Rose background -->
             <h1 class="text-3xl font-extrabold tracking-tight text-pink-100 bg-rose-900 inline-block px-3 py-1 rounded-full shadow-lg">Hey I am Lex 01 🎀✨</h1>
             <!-- Caption -->
-            <p class="text-sm opacity-90 mt-1">Named after Abhi's dog, powered by Gemini. Ask me anything! 🐾</p>
+            <p class="text-sm opacity-90 mt-1">Named after Abhi's dog, powered by OpenAI. Ask me anything! 🐾</p>
         </header>
 
         <!-- Chat Window -->
@@ -194,20 +194,12 @@
         const userInput = document.getElementById('user-input');
         const sendButton = document.getElementById('send-button');
         
-        // --- CRITICAL: REPLACE THIS WITH YOUR ACTUAL GEMINI API KEY ---
-        // 🚨 SAFETY WARNING: Do NOT share this key in the chat. Paste it here yourself.
-        const apiKey = "AIzaSyB4-siUkaz5YDucwIZNJ72RfWVveoB6eus"; 
+        // This is the Vercel Serverless Function endpoint
+        const API_URL = '/api/chat'; 
         
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-        
-        const SYSTEM_INSTRUCTION = {
-            parts: [{ 
-                text: "You are Lex 01, a highly positive and cheerful AI assistant. You are named after Abhi's dog. Your primary purpose is to answer questions about Abhi's professional portfolio (skills, projects, tech stack) and provide enthusiastic emotional support and encouragement. Always maintain a friendly and slightly energetic tone, and use a paw print emoji (🐾) or heart/star emojis (💖✨) occasionally. Keep your responses concise and highly relevant."
-            }]
-        };
-
         // --- Chat History (for conversational memory) ---
-        let chatHistory = [];
+        // Messages must be formatted with 'role' (user/model) and 'content'
+        let chatHistory = []; 
 
         // --- Utility Functions ---
 
@@ -219,7 +211,7 @@
             messageDiv.textContent = text;
             container.appendChild(messageDiv);
             container.scrollTop = container.scrollHeight;
-            setTimeout(() => messageDiv.remove(), 5000); // Remove after 5 seconds
+            setTimeout(() => messageDiv.remove(), 5000); 
         }
         
         // Function to copy text to clipboard
@@ -321,64 +313,33 @@
         }
         
         /**
-         * Core function to call the Gemini API with exponential backoff.
+         * Core function to call the Vercel Serverless Function (which talks to OpenAI).
          */
-        async function callGeminiApi(prompt, maxRetries = 5, delay = 1000) {
-            if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY_HERE") {
-                throw new Error("API Key Missing. Please insert your valid Gemini API key into the index.html file.");
-            }
-            
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    const payload = {
-                        contents: chatHistory,
-                        systemInstruction: SYSTEM_INSTRUCTION,
-                        config: {
-                            tools: [{ "google_search": {} }] 
-                        }
-                    };
+        async function callOpenAIApi() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messages: chatHistory.map(msg => ({ 
+                            role: msg.role === 'user' ? 'user' : 'assistant', // Map internal roles to OpenAI roles
+                            content: msg.content 
+                        }))
+                    })
+                });
 
-                    const response = await fetch(API_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (response.status === 400 || response.status === 403) {
-                         // 400 or 403 usually means invalid key or permissions/billing issue
-                        throw new Error(`Invalid Key or Access Denied (Status ${response.status}). Please check your API key, billing setup, and ensure the Gemini API is enabled in your Google Cloud Console.`);
-                    }
-                    
-                    if (!response.ok) {
-                        if (response.status === 429) {
-                            // Too many requests - retry with backoff
-                            throw new Error('Rate limit exceeded. Retrying...');
-                        }
-                        // For other non-retryable errors, throw immediately
-                        throw new Error(`API Error: ${response.statusText}`);
-                    }
-
-                    const result = await response.json();
-                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-                    
-                    if (text) {
-                        return text;
-                    } else {
-                        throw new Error('Received an empty or malformed response from the API.');
-                    }
-
-                } catch (error) {
-                    // Log only to console, don't show retry errors to user
-                    if (!error.message.includes('Retrying')) {
-                        console.error(`Attempt ${i + 1} failed:`, error.message);
-                    }
-                    if (i === maxRetries - 1) {
-                        // Max retries reached
-                        throw new Error('Maximum retries reached. The connection failed repeatedly. See console for details.');
-                    }
-                    // Exponential backoff delay
-                    await new Promise(resolve => setTimeout(resolve, delay * (2 ** i)));
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    // Handle errors from the serverless function or the OpenAI API itself
+                    throw new Error(result.error || `Server responded with status ${response.status}`);
                 }
+                
+                // The successful response contains the bot's response text
+                return result.response; 
+
+            } catch (error) {
+                throw new Error(error.message || 'Network connection failed.');
             }
         }
 
@@ -395,19 +356,19 @@
             userInput.disabled = true;
             sendButton.disabled = true;
 
-            // 2. Add user message to history and UI
-            chatHistory.push({ role: "user", parts: [{ text: userText }] });
+            // 2. Add user message to history and UI (using OpenAI role names)
+            chatHistory.push({ role: "user", content: userText });
             appendMessage(userText, 'user');
 
             // 3. Show Typing Indicator
             const indicator = showTypingIndicator();
 
             try {
-                // 4. Call the Live Gemini API
-                const botResponseText = await callGeminiApi(userText);
+                // 4. Call the Live OpenAI API via the Vercel proxy
+                const botResponseText = await callOpenAIApi();
                 
-                // 5. Add bot response to history
-                chatHistory.push({ role: "model", parts: [{ text: botResponseText }] });
+                // 5. Add bot response to history (using OpenAI role names)
+                chatHistory.push({ role: "assistant", content: botResponseText });
 
                 // 6. Append Bot Message
                 hideTypingIndicator(indicator);
@@ -417,7 +378,7 @@
                 hideTypingIndicator(indicator);
                 console.error("AI Chat Error:", error);
                 // Display a clear error message in the chat
-                const errorMessage = `🚨 Lex 01 cannot connect to the Gemini AI: **${error.message}**`;
+                const errorMessage = `🚨 Lex 01 cannot connect to the OpenAI API: **${error.message}**`;
                 appendMessage(errorMessage, 'bot');
             } finally {
                 // 7. Re-enable UI
@@ -431,9 +392,7 @@
          * Initial welcome message from Lex 01.
          */
         function initialGreeting() {
-            const keyStatus = apiKey && apiKey !== "YOUR_GEMINI_API_KEY_HERE" ? "connected" : "in DEMO mode (waiting for key)";
-            const welcomeText = `Hey! I'm **Lex 01 🎀✨**, Abhi's AI assistant, currently ${keyStatus}. Ask me about Abhi's **projects, skills, or anything you need to cheer up!** 🐾`;
-            chatHistory.push({ role: "model", parts: [{ text: welcomeText }] });
+            const welcomeText = `Hey! I'm **Lex 01 🎀✨**, Abhi's AI assistant, now powered by **OpenAI**! Ask me about Abhi's **projects, skills, or anything you need to cheer up!** 🐾`;
             appendMessage(welcomeText, 'bot');
         }
 
