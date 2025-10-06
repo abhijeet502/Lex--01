@@ -1,490 +1,375 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Lex 01 — Abhi's Chatbot</title>
-  <style>
-    /* ---------- Theme & reset ---------- */
-    :root{
-      --bg-1: #0f172a;
-      --bg-2: #1e293b;
-      --card: rgba(255,255,255,0.04);
-      --glass: rgba(255,255,255,0.03);
-      --accent-a: #f472b6; /* pink */
-      --accent-b: #a78bfa; /* purple */
-      --text: #e6eef8;
-      --muted: #94a3b8;
-      --positive: #34d399;
-      --danger: #fb7185;
-    }
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%}
-    body{
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background: linear-gradient(180deg,var(--bg-1), var(--bg-2));
-      color:var(--text);
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:30px;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Lex 01 — Abhi's AI Chatbot</title>
+<style>
+  :root{
+    --bg1:#0f172a; --bg2:#1e293b; --card: rgba(255,255,255,0.04);
+    --accent1:#38bdf8; --accent2:#a78bfa; --muted:#94a3b8; --white:#f8fafc;
+    --round:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%; margin:0; font-family: "Segoe UI", system-ui, -apple-system, "Poppins", sans-serif;}
+  body{
+    background: linear-gradient(135deg,var(--bg1),var(--bg2));
+    color:var(--white);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
 
-    /* ---------- layout ---------- */
-    .wrap{
-      width:100%;
-      max-width:980px;
-      display:grid;
-      grid-template-columns: 360px 1fr;
-      gap:28px;
-      align-items:start;
-    }
+  /* container */
+  .app {
+    width:100%;
+    max-width:980px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:18px;
+    padding:28px;
+    box-shadow: 0 8px 40px rgba(2,6,23,0.7);
+    position:relative;
+    overflow:hidden;
+  }
 
-    /* Left panel (info / quick links) */
-    .panel{
-      background:var(--card);
-      border-radius:14px;
-      padding:22px;
-      box-shadow: 0 10px 30px rgba(2,6,23,0.6);
-      border:1px solid rgba(255,255,255,0.03);
-    }
-    .avatar{
-      width:72px;height:72px;border-radius:14px;
-      background:linear-gradient(135deg,var(--accent-b),var(--accent-a));
-      display:flex;align-items:center;justify-content:center;font-weight:700;font-size:28px;color:white;
-      margin-bottom:12px;
-      box-shadow:0 8px 24px rgba(167,139,250,0.08);
-    }
-    .title{
-      font-size:20px;font-weight:700;margin-bottom:6px;
-    }
-    .subtitle{color:var(--muted);font-size:13px;margin-bottom:12px}
-    .bio{color:var(--text);opacity:0.95;font-size:14px;margin-bottom:14px;line-height:1.45}
+  /* header */
+  .top {
+    display:flex; gap:18px; align-items:center; margin-bottom:18px;
+  }
+  .logo {
+    width:72px; height:72px; border-radius:14px;
+    background:linear-gradient(135deg,var(--accent1),var(--accent2));
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; color:#022; font-size:22px;
+    box-shadow: 0 8px 24px rgba(163,0,255,0.08);
+  }
+  .title h1 { font-size:20px; margin:0; letter-spacing:0.2px; }
+  .title p { margin:4px 0 0; color:var(--muted); font-size:13px; }
 
-    .quick{
-      display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;
-    }
-    .btn{
-      display:inline-flex;align-items:center;gap:8px;
-      background:linear-gradient(90deg,var(--accent-a),var(--accent-b));
-      padding:8px 14px;border-radius:10px;color:white;text-decoration:none;font-weight:600;
-      box-shadow: 0 8px 20px rgba(167,139,250,0.08);
-      transition:transform .12s ease,opacity .12s;
-    }
-    .btn:hover{transform:translateY(-3px)}
+  /* chat + side */
+  .main {
+    display:grid; grid-template-columns: 1fr 320px; gap:20px;
+  }
+  @media (max-width:880px){ .main{ grid-template-columns: 1fr; } .side{order:2;} }
 
-    .projects-list{margin-top:12px}
-    .project-item{background:var(--glass);padding:12px;border-radius:10px;margin-bottom:10px;border:1px solid rgba(255,255,255,0.02)}
-    .project-item small{display:block;color:var(--muted);font-size:12px;margin-top:6px}
+  /* chat area */
+  .chat {
+    background: transparent;
+    border-radius:12px;
+    padding:16px;
+    min-height:420px;
+    display:flex; flex-direction:column;
+  }
+  .messages { flex:1; overflow:auto; padding-right:8px; }
+  .msg {
+    max-width:78%;
+    margin:10px 0;
+    padding:12px 14px;
+    border-radius:12px;
+    line-height:1.4;
+    font-size:15px;
+  }
+  .msg.user { background: linear-gradient(90deg,#111827,#0b1220); color:var(--white); margin-left:auto; border-bottom-right-radius:6px; }
+  .msg.bot { background: var(--card); color:var(--white); border-bottom-left-radius:6px; }
 
-    /* Right panel (chat) */
-    .chat-wrap{
-      display:flex;flex-direction:column;height:80vh;
-      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border-radius:14px;padding:18px;border:1px solid rgba(255,255,255,0.03);
-      box-shadow:0 10px 35px rgba(2,6,23,0.6);
-    }
+  .hint { color:var(--muted); font-size:13px; margin-top:6px; }
 
-    .chat-header{
-      display:flex;align-items:center;gap:12px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.02);
-    }
-    .bot-name{
-      font-weight:800;font-size:20px;
-      background:linear-gradient(90deg,var(--accent-a),var(--accent-b));
-      -webkit-background-clip:text;color:transparent;
-    }
-    .bot-sub{color:var(--muted);font-size:13px}
+  /* input */
+  .composer {
+    display:flex; gap:10px; margin-top:12px; align-items:center;
+  }
+  .composer input {
+    flex:1; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,0.04);
+    background: rgba(255,255,255,0.02); color:var(--white); outline:none;
+  }
+  .composer button {
+    background: linear-gradient(90deg,var(--accent1),var(--accent2));
+    border:none; color:#022; padding:10px 16px; border-radius:12px; font-weight:700;
+    cursor:pointer;
+  }
+  .composer button:active{ transform:translateY(1px) }
 
-    /* message area */
-    .messages{
-      flex:1;overflow:auto;padding:18px 8px;display:flex;flex-direction:column;gap:12px;
-      scroll-behavior:smooth;
-    }
-    .msg{
-      max-width:78%;
-      padding:12px 14px;border-radius:12px;line-height:1.4;font-size:14px;
-      box-shadow: 0 6px 18px rgba(2,6,23,0.4);
-    }
-    .msg.bot{ background: linear-gradient(90deg, rgba(167,139,250,0.12), rgba(244,114,182,0.08)); align-self:flex-start; color:var(--text); border:1px solid rgba(255,255,255,0.02) }
-    .msg.user{ background: rgba(255,255,255,0.03); align-self:flex-end; color:var(--text); border:1px solid rgba(255,255,255,0.02) }
+  /* side panel */
+  .side {
+    background: var(--card);
+    border-radius:12px;
+    padding:16px;
+    color:var(--white);
+  }
+  .side h3{ margin:0 0 8px 0; }
+  .side p{ color:var(--muted); font-size:13px; margin:0 0 10px 0; }
 
-    .meta{ font-size:12px;color:var(--muted); margin-top:6px }
+  .quick a {
+    display:block;
+    background: linear-gradient(90deg,var(--accent1),var(--accent2));
+    color:#022; padding:10px 12px; border-radius:10px; margin-bottom:10px;
+    text-decoration:none; font-weight:700;
+  }
 
-    /* input */
-    .composer{
-      display:flex;gap:10px;align-items:center;padding-top:12px;border-top:1px solid rgba(255,255,255,0.02);
-    }
-    .input{
-      flex:1;background:transparent;border-radius:12px;padding:12px 14px;border:1px solid rgba(255,255,255,0.03);color:var(--text);
-      outline:none;font-size:14px;
-    }
-    .send{
-      background: linear-gradient(90deg,var(--accent-a),var(--accent-b));
-      color:white;padding:10px 16px;border-radius:12px;border:none;font-weight:700;cursor:pointer;
-      box-shadow: 0 8px 18px rgba(167,139,250,0.08);
-    }
-    .send:active{transform:translateY(1px)}
+  .links { margin-top:12px }
+  .links a { color:var(--accent1); display:block; margin-bottom:6px; text-decoration:none; font-weight:600; }
 
-    /* helpful chips below */
-    .chips{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-    .chip{background:rgba(255,255,255,0.03);padding:8px 12px;border-radius:999px;color:var(--muted);font-size:13px;border:1px solid rgba(255,255,255,0.02);cursor:pointer}
-    .chip:hover{transform:translateY(-3px);background:rgba(255,255,255,0.04);color:var(--text)}
+  /* footer */
+  .foot { text-align:center; margin-top:14px; color:var(--muted); font-size:13px; }
 
-    /* footer */
-    .smallfoot{font-size:13px;color:var(--muted);text-align:center;margin-top:14px}
-
-    /* responsive */
-    @media (max-width:900px){
-      .wrap{grid-template-columns:1fr; padding: 10px}
-      .chat-wrap{height:75vh}
-    }
-
-    /* subtle typing indicator */
-    .typing-dot{display:inline-block;margin-right:4px;opacity:0.8}
-    .typing-anim{animation:blink 1s infinite}
-    @keyframes blink{0%{opacity:0.2}50%{opacity:1}100%{opacity:0.2}}
-  </style>
+  /* small helpers */
+  .small { font-size:13px; color:var(--muted) }
+</style>
 </head>
 <body>
-  <div class="wrap">
 
-    <!-- LEFT: info / quick actions -->
-    <div class="panel">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div class="avatar">AB</div>
-        <div>
-          <div class="title">Abhijeet (Abhi)</div>
-          <div class="subtitle">Self-taught developer · hobbyist · problem solver</div>
-        </div>
-      </div>
-
-      <div class="bio">Hi — I build small web projects, animations and tools. Want to peek my work or ask about how something is made? Ask Lex 01 below 💬</div>
-
-      <div class="quick">
-        <a class="btn" href="https://truth-theta.vercel.app/" target="_blank">🚀 Truth Theta</a>
-        <a class="btn" href="https://abhi-quote.vercel.app/" target="_blank">💖 Writer's Quotes</a>
-      </div>
-
-      <div style="margin-top:14px">
-        <h4 style="color:var(--text);margin-bottom:10px">My Little Projects</h4>
-        <div class="projects-list">
-          <div class="project-item">
-            <strong>Truth Theta</strong>
-            <small>Live ↗ — small practice site</small>
-          </div>
-          <div class="project-item">
-            <strong>Quote Generator</strong>
-            <small>Live ↗ — writer / lyricist helper</small>
-          </div>
-          <div class="project-item">
-            <strong>Private projects</strong>
-            <small>🔒 Some projects are private</small>
-          </div>
-          <div class="project-item">
-            <strong>More in development</strong>
-            <small>🔧 coming soon</small>
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-top:14px">
-        <h4 style="color:var(--text);margin-bottom:8px">Contacts</h4>
-        <div style="display:flex;gap:8px;flex-direction:column">
-          <a class="btn" href="https://instagram.com/__abhiiii_92" target="_blank">📸 Instagram</a>
-        </div>
-      </div>
+<div class="app" role="application" aria-label="Lex 01 Chatbot">
+  <div class="top">
+    <div class="logo">Lx</div>
+    <div class="title">
+      <h1>Hey — I’m Lex 01 🎀✨</h1>
+      <p>Abhi’s friendly helper. Ask about the site, projects, or if you need a mood lift.</p>
     </div>
-
-    <!-- RIGHT: chat -->
-    <div class="chat-wrap">
-      <div class="chat-header">
-        <div style="display:flex;flex-direction:column">
-          <div class="bot-name">Hey I am Lex 01 🎀✨</div>
-          <div class="bot-sub">Abhi's friendly assistant — ask about projects or if you're feeling low, I can help 💬</div>
-        </div>
-      </div>
-
-      <div class="messages" id="messages" aria-live="polite">
-        <!-- welcome message inserted by JS -->
-      </div>
-
-      <div class="composer" role="region" aria-label="Chat input">
-        <input id="input" class="input" placeholder="Say hi — ask about a project or say how you feel..." />
-        <button id="sendBtn" class="send">Send</button>
-      </div>
-
-      <div class="chips" style="margin-top:8px">
-        <div class="chip" onclick="useChip('How did you build the quote generator?')">How was quote tool made?</div>
-        <div class="chip" onclick="useChip('Tell me something nice — I am sad')">I'm sad — cheer me up</div>
-        <div class="chip" onclick="useChip('What is Truth Theta?')">What is Truth Theta?</div>
-        <div class="chip" onclick="useChip('How can I collaborate?')">Wanna build with me?</div>
-      </div>
-
-      <div class="smallfoot">Crafted with 💖 by Abhi 🎀</div>
-    </div>
-
   </div>
 
-  <script>
-    /**************************************************************************
-     * Lex 01 — rule-based chatbot (single-file, offline)
-     *
-     * How it works:
-     *  - basic NLP via keyword matching + fallback templates
-     *  - small knowledge base about projects and contact info
-     *  - emotional support: detects sadness, anxiety, loneliness keywords
-     *  - randomized templates to avoid repetitive replies
-     *
-     * Edit: KNOWLEDGE_BASE and CONTACTS below to customize project info.
-     **************************************************************************/
+  <div class="main">
+    <!-- Chat column -->
+    <div class="chat" aria-live="polite">
+      <div class="messages" id="messages">
+        <!-- initial bot greeting -->
+        <div class="msg bot"><strong>Lex 01:</strong> Hi — I’m Lex 01, Abhi’s AI helper (named after his pup 🐶). I can explain the website, share project links, or offer kind words when you’re feeling low. Try asking: “what projects?”, “truth-theta”, or “I’m feeling sad”.</div>
+      </div>
 
-    // --------- small knowledge base about your projects & contact ---------
-    const KNOWLEDGE_BASE = {
-      "truth theta": {
-        title: "Truth Theta",
-        summary: "A small practice site by Abhi — experiments with UI, animations, and frontend logic.",
-        tech: "Built with plain HTML, CSS and JavaScript — lightweight and mobile-first.",
-        link: "https://truth-theta.vercel.app/"
-      },
-      "quote generator": {
-        title: "Writer's Quote Generator",
-        summary: "A helpful tool that gives writers and lyricists short inspiring lines and prompts.",
-        tech: "Pure client-side JavaScript with a curated quotes library — no database or server required.",
-        link: "https://abhi-quote.vercel.app/"
-      }
-    };
+      <div class="composer" role="search">
+        <input id="input" placeholder="Type a question — e.g. 'what projects' or 'I feel sad'"/>
+        <button id="sendBtn">Send</button>
+      </div>
+      <div class="hint small">Pro tip: ask things like “how to run the project”, “what is Truth Theta”, or say “I’m feeling low”.</div>
+    </div>
 
-    const CONTACTS = {
-      instagram: "https://instagram.com/__abhiiii_92",
-      portfolio: "https://dev-abhi.vercel.app/" // replace with your main link if you want
-    };
+    <!-- Side panel -->
+    <aside class="side" aria-hidden="false">
+      <h3>Quick actions</h3>
+      <p>Tap a button to try sample questions.</p>
 
-    // --------- utility helpers ----------
-    function $(id){ return document.getElementById(id) }
-    function now(){ return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) }
+      <div class="quick">
+        <a href="#" data-sample="what projects">What projects do you have?</a>
+        <a href="#" data-sample="tell me about truth theta">Tell me about Truth Theta</a>
+        <a href="#" data-sample="i feel sad">I feel sad</a>
+        <a href="#" data-sample="motivate me">Motivate me</a>
+      </div>
 
-    // ---------- message rendering ----------
-    const messagesEl = $('messages');
+      <div class="links">
+        <p class="small">Live project</p>
+        <a href="https://truth-theta.vercel.app/" target="_blank">🚀 Truth Theta (live)</a>
+        <a href="https://abhi-quote.vercel.app/" target="_blank">✨ Writer Quote Generator</a>
+        <p class="small" style="margin-top:10px">Other</p>
+        <div class="small">🔒 Some private projects — in progress</div>
+        <div class="small">🔧 More coming — stay tuned</div>
+      </div>
 
-    function addMessage(text, who='bot', meta='') {
-      // create message node
-      const node = document.createElement('div');
-      node.className = 'msg ' + (who === 'user' ? 'user' : 'bot');
-      node.innerHTML = `<div>${escapeHtml(text).replace(/\n/g,'<br>')}</div>`;
-      if(meta) node.innerHTML += `<div class="meta">${escapeHtml(meta)}</div>`;
-      messagesEl.appendChild(node);
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
+      <div style="margin-top:12px">
+        <p class="small">Need more? Ask “contact” to get Abhi’s Insta link.</p>
+      </div>
+    </aside>
+  </div>
 
-    function escapeHtml(s) {
-      return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c] });
-    }
+  <div class="foot">Crafted with 💖 by Abhi 🎀</div>
+</div>
 
-    // ---------- starting welcome ----------
-    function welcome() {
-      const welcomeText = [
-        "Hi — I'm Lex 01 🎀✨, Abhi's friendly AI helper (named after his dog). Ask me about Abhi's projects, how things were built, or tell me how you're feeling — I'll try to help.",
-        "Hello! I'm Lex 01 🎀✨. Ask me about any project on Abhi's portfolio or say if you need a small pick-me-up — I love to cheer people on!"
-      ];
-      addMessage(randomOf(welcomeText), 'bot', `online • ${now()}`);
-    }
-    welcome();
+<script>
+/*
+  Lex 01 — Smart offline chatbot
+  * Keyword + pattern matching
+  * Varied reply templates to avoid repetition
+  * Simple project-help and empathy responses
+  * To enable real AI later: replace fetchRespond() with a call to an API and return the text
+*/
 
-    // ---------- core logic: intents & responses ----------
-    const SAD_KEYWORDS = ["sad","lonely","depressed","cry","pain","heartbroken","upset","not okay","bad","unhappy","tired"];
-    const HAPPY_KEYWORDS = ["happy","great","good","nice","awesome","cool","yay","pumped"];
-    const PROJECT_KEYWORDS = ["project","website","site","truth theta","quote","quote generator","portfolio","deploy","vercel"];
-    const BUILD_KEYWORDS = ["how","build","made","stack","tech","tools","code","js","javascript","html","css","python"];
+// --- Response data (lots of variants so replies feel natural) ---
+const RESPONSE_VARIANTS = {
+  greet: [
+    "Hey — I'm Lex 01! 👋 I'm Abhi's friendly helper. Ask me about the site, projects, or tell me how you're feeling.",
+    "Hi there! Lex 01 at your service 🎀 — I can explain the projects, help with basic dev questions, or offer a kind word.",
+    "Hello! I'm Lex 01 — named after Abhi's dog 🐶. Ask me anything about the portfolio or say 'I'm sad' for a supportive reply."
+  ],
 
-    function handleUser(raw) {
-      const text = raw.trim();
-      if(!text) return;
+  projectsIntro: [
+    "Abhi keeps a few projects here — quick list: Truth Theta (live), a Writer's Quote Generator, plus private and in-dev projects.",
+    "You can see Truth Theta (live) and a quote generator. Some projects are private and others are still in development."
+  ],
 
-      addMessage(text, 'user', now());
+  truthTheta: [
+    "Truth Theta is a small practice site Abhi built — it's live at the button on the right. It's a demo of UI + interactivity.",
+    "Truth Theta is one of Abhi's practice projects. It's hosted live; click the project link on the right to open it."
+  ],
 
-      // small delay to simulate "typing"
-      showTypingIndicator();
+  howToRun: [
+    "Most small projects in this portfolio are static: open `index.html` locally or deploy to Vercel — upload the repo and choose 'Other' as preset.",
+    "To run a static site: put `index.html` in your repo root and deploy to Vercel. For JS projects, ensure any assets are in an `assets/` folder."
+  ],
 
-      setTimeout(() => {
-        const response = decideResponse(text.toLowerCase());
-        hideTypingIndicator();
-        addMessage(response.answer, 'bot', response.meta ? `${response.meta} • ${now()}` : `lex • ${now()}`);
-      }, 550 + Math.random()*700);
-    }
+  contact: [
+    "You can connect with Abhi on Instagram: https://instagram.com/__abhiiii_92 — he loves building things and meeting other devs.",
+    "Abhi's Insta: https://instagram.com/__abhiiii_92 — reach out for collabs or just say hi!"
+  ],
 
-    function decideResponse(lower) {
-      // 1) direct commands (open link)
-      if(lower.startsWith('open ')) {
-        const key = lower.replace('open ','').trim();
-        const kb = findKB(key);
-        if(kb) return { answer: `Opening ${kb.title} — here's the link: ${kb.link}`, meta: 'link' };
-        return { answer: `I couldn't find that project. Try "What is Truth Theta?" or ask about the Quote Generator.`};
-      }
+  encourage: [
+    "Hey — it's okay to have a hard day. Your feelings are real. Take a breath, maybe step away for 10 minutes, and come back gently.",
+    "You're allowed to pause and rest. Small steps forward are still progress — even reading this is a good step.",
+    "If you're feeling low, try writing one sentence about it. Sometimes putting it down helps clear the mind."
+  ],
 
-      // 2) sadness / emotional support intent
-      if(containsAny(lower, SAD_KEYWORDS)) {
-        return { answer: generateComfort(lower), meta: 'emotional support' };
-      }
+  upliftVariants: [
+    "You are worthy of kindness — especially from yourself.",
+    "Even tiny wins matter. Celebrate one small thing you did today.",
+    "You’ve got talents and time to learn. One small practice session is better than none.",
+    "If words are heavy, breathe and remember: you are not alone in this."
+  ],
 
-      // 3) happiness / celebrate
-      if(containsAny(lower, HAPPY_KEYWORDS)) {
-        return { answer: randomOf([
-          "That's wonderful — keep that energy! 💫",
-          "Love to hear it! If you want, share what made your day — celebrating small wins matters.",
-          "Yay! If you feel like building something with that energy, I can suggest a tiny coding warm-up."
-        ])};
-      }
+  emotionalActions: [
+    "If it helps, try writing the line: 'I did my best today' into a note. Keep it as a small reminder.",
+    "Listen to a song you like, take a short walk, or do one thing that makes you smile for 5 minutes.",
+    "Write a 4-word gratitude list. That tiny habit slowly builds resilience."
+  ],
 
-      // 4) project knowledge questions
-      const kbKey = Object.keys(KNOWLEDGE_BASE).find(k => lower.includes(k));
-      if(kbKey) {
-        const kb = KNOWLEDGE_BASE[kbKey];
-        const answers = [
-          `${kb.title}: ${kb.summary} It was built ${kb.tech}. You can view it here: ${kb.link}`,
-          `About ${kb.title}: ${kb.summary} — tech used: ${kb.tech}. Link: ${kb.link}`,
-          `Quick summary — ${kb.title}: ${kb.summary}. Built with: ${kb.tech}. Live: ${kb.link}`
-        ];
-        return { answer: randomOf(answers), meta: 'project info' };
-      }
+  fallback: [
+    "I’m not sure about that yet — ask me about Projects, Truth Theta, running a project, or say you’re feeling sad and I’ll help.",
+    "Sorry, I don’t have that exact info. Try 'what projects' or 'how to run a project' or 'I feel sad'."
+  ]
+};
 
-      // 5) build/how-to questions (general)
-      if(containsAny(lower, BUILD_KEYWORDS) && containsAny(lower, ["how","made","build","stack","deploy","host","vercel"])) {
-        return {
-          answer: "Most projects here are simple client-side apps — HTML, CSS, and vanilla JavaScript. Abhi usually deploys to Vercel for free hosting. If you want, ask 'How to deploy to Vercel' and I'll give step-by-step.",
-          meta: 'build tips'
-        }
-      }
+// small utility: pick random
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
-      // 6) collaboration / contact
-      if(lower.includes('collab') || lower.includes('build with me') || lower.includes('wanna') || lower.includes('work with')) {
-        return {
-          answer: `Abhi loves collaborations — you can reach him on Instagram. Here's the link: ${CONTACTS.instagram}\nOr say "how can I collaborate?" for tips.`,
-          meta: 'contact'
-        }
-      }
+// message helper: append
+function appendMessage(text, who='bot'){
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + (who==='user' ? 'user' : 'bot');
+  div.innerHTML = (who==='bot' ? '<strong>Lex 01:</strong> ' : '<strong>You:</strong> ') + ' ' + escapeHtml(text);
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
 
-      // 7) small talk / greetings
-      if(/^hi$|^hey$|hello|hiya|sup/.test(lower)) {
-        return { answer: randomOf([
-          "Hey! I'm Lex 01 🎀✨ — ask me about Abhi's projects or say if you need a friendly chat.",
-          "Hello — want to peek a project or hear a small encouraging line?",
-          "Hi there — need help with a project or feeling a bit low? I'm here!"
-        ])};
-      }
+// escape to prevent any HTML injection (not strictly necessary but safe)
+function escapeHtml(str){
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 
-      // 8) cheer-up quick prompts (user asked "cheer me" or "motivate")
-      if(lower.includes('cheer') || lower.includes('motiva') || lower.includes('lift') || lower.includes('inspire')) {
-        return { answer: generateComfort(lower), meta: 'cheer up' };
-      }
+// main respond function — returns text (or Promise resolving to text if you later use API)
+async function fetchRespond(userText){
+  // normalize
+  const t = userText.trim().toLowerCase();
 
-      // 9) fallback: attempt to answer via small heuristics
-      if(lower.length < 40 && lower.endsWith('?')) {
-        // short question fallback
-        return { answer: "Good question! Try asking in a bit more detail: e.g. 'How did you make the quote generator?' or 'What tech did you use for Truth Theta?'" };
-      }
+  // tiny sentiment/keyword checks
+  const sadKeywords = ['sad','depressed','down','low','cry','lost','unhappy','lonely','hurt'];
+  const projectKeywords = ['project','projects','truth','theta','truth-theta','truth theta','site','website','deploy','vercel'];
+  const runKeywords = ['run','how to run','install','setup','deploy','deploy to vercel'];
+  const contactKeywords = ['contact','instagram','insta','reach','email','collab','collabs','friend'];
+  const helloKeywords = ['hi','hello','hey','hiya','sup','greetings','yo'];
+  const motivateKeywords = ['motivate','motivation','encourage','uplift','inspire','inspiration'];
+  const quoteKeywords = ['quote','writer','lyrics','lyric','inspire','inspiration'];
 
-      // final fallback: friendly nudge
-      return {
-        answer: randomOf([
-          "I hear you — could you share a little more detail? For project help, say the project name (Truth Theta / Quote Generator).",
-          "I might need a tiny clarification. Try asking: 'How to deploy to Vercel?' or 'Can you cheer me up?'",
-          "I'm learning too! If it's about a project, include its name (for example: Truth Theta). If you feel low, say 'I'm sad' and I'll send a comforting line."
-        ])
-      };
-    }
+  // detect if user asks a question (simple)
+  if (helloKeywords.some(k => t.includes(k))){
+    return pick(RESPONSE_VARIANTS.greet);
+  }
 
-    // ----------- helper functions for varied replies -----------
-    function containsAny(text, arr) {
-      return arr.some(k => text.includes(k));
-    }
+  if (projectKeywords.some(k => t.includes(k))){
+    if (t.includes('truth')) return pick(RESPONSE_VARIANTS.truthTheta);
+    return pick(RESPONSE_VARIANTS.projectsIntro);
+  }
 
-    function findKB(query){
-      query = query.toLowerCase();
-      return Object.values(KNOWLEDGE_BASE).find(k => k.title.toLowerCase().includes(query) || query.includes(k.title.toLowerCase()));
-    }
+  if (runKeywords.some(k => t.includes(k))){
+    return pick(RESPONSE_VARIANTS.howToRun);
+  }
 
-    // emotional comfort generator — mix templates and poetic lines
-    function generateComfort(inputLower){
-      const gentle = [
-        "I'm sorry you're feeling this way — it's okay to not be okay. Take one small breath with me: in... out... 💖",
-        "You are not alone. Even the moon keeps its scars — they make the glow unique. You're allowed to heal at your own pace.",
-        "If you want, write one tiny thing you’re thankful for today — I'll hold space for it. Small steps are real progress.",
-        "When it hurts, try to tell one truth about it (even one sentence). Saying it aloud can quiet the storm a little.",
-        "Here's a small thought: every line you write is a way of showing you survived. That matters more than you know."
-      ];
-      const activity = [
-        "Would you like a short writing prompt to turn this feeling into a few lines? I can give one in 10 seconds.",
-        "If you want, I can share a tiny breathing exercise or a short line of encouragement you can save.",
-        "Want a prompt? 'Write about a place that felt like safety — describe it in three lines.'"
-      ];
-      // Combine: pick one from gentle and maybe one activity
-      let out = randomOf(gentle);
-      if(Math.random() < 0.6) out += "\n\n" + randomOf(activity);
-      return out;
-    }
+  if (contactKeywords.some(k => t.includes(k))){
+    return pick(RESPONSE_VARIANTS.contact);
+  }
 
-    // pick a random item
-    function randomOf(arr){ return arr[Math.floor(Math.random()*arr.length)] }
+  if (sadKeywords.some(k => t.includes(k))){
+    // choose a warm empathetic reply combined with an action tip
+    const base = pick(RESPONSE_VARIANTS.encourage);
+    const tip = pick(RESPONSE_VARIANTS.emotionalActions);
+    const uplift = pick(RESPONSE_VARIANTS.upliftVariants);
+    return `${base}\n\n${uplift}\n\nTry this: ${tip}`;
+  }
 
-    // ---------- typing indicator ----------
-    let typingNode = null;
-    function showTypingIndicator(){
-      typingNode = document.createElement('div');
-      typingNode.className = 'msg bot';
-      typingNode.innerHTML = `<div><span class="typing-dot typing-anim">•</span><span class="typing-dot typing-anim" style="animation-delay:.15s">•</span><span class="typing-dot typing-anim" style="animation-delay:.3s">•</span> Lex is typing...</div>`;
-      messagesEl.appendChild(typingNode);
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
-    function hideTypingIndicator(){
-      if(typingNode && typingNode.parentNode) typingNode.parentNode.removeChild(typingNode);
-      typingNode = null;
-    }
+  if (motivateKeywords.some(k => t.includes(k))){
+    return `${pick(RESPONSE_VARIANTS.upliftVariants)}\n\nSmall step idea: try coding for 15 minutes — something tiny you can finish today.`;
+  }
 
-    // ---------- input handling ----------
-    const inputEl = $('input');
-    const sendBtn = $('sendBtn');
-    sendBtn.addEventListener('click', () => { handleUser(inputEl.value); inputEl.value=''; inputEl.focus(); });
-    inputEl.addEventListener('keydown', (e) => { if(e.key === 'Enter') { handleUser(inputEl.value); inputEl.value=''; } });
-
-    // chip helper
-    function useChip(text){ inputEl.value = text; inputEl.focus(); }
-
-    // ---------- small "smart" answers to dev questions (optional details) ----------
-    // This can be extended — add more Q/A pairs if you want:
-    const DEV_FAQs = [
-      { q: "how to deploy to vercel", a: "Quick steps: 1) Push your repo to GitHub 2) Sign in to Vercel and 'Import Project' 3) Pick framework as 'Other' or 'HTML' and root as ./ 4) Deploy — Vercel will give a live link." },
-      { q: "how to host a static site", a: "Static HTML/CSS/JS can be hosted on Vercel, Netlify, or GitHub Pages. They serve files directly and are free for small projects." },
-      { q: "what is the stack", a: "Abhi typically uses plain HTML, CSS and vanilla JavaScript for quick projects. He adds small animations and host on Vercel." }
+  if (quoteKeywords.some(k => t.includes(k))){
+    // quick inline short motivational text for writers/readers
+    const mini = [
+      "Write one honest line today — that’s a start.",
+      "Use your notebook as a friend, not a judge — draft freely.",
+      "If you’re a lyricist, think of the emotion you want to evoke first, words come next."
     ];
+    return pick(mini);
+  }
 
-    // extend decideResponse: detect dev faq
-    function checkDevFaq(textLower){
-      for(const f of DEV_FAQs){
-        if(textLower.includes(f.q.split(' ')[0]) && textLower.includes(f.q.split(' ')[1])) return f.a;
-      }
-      return null;
-    }
+  // fallback: maybe the user asks technical Q with keywords like "error"
+  if (t.includes('error') || t.includes('bug') || t.includes('help')){
+    return "If you're seeing an error, tell me the error message text and which file (index.html, script.js, etc.). I can give basic debugging tips.";
+  }
 
-    // wrap decideResponse to consider dev faqs
-    const oldDecide = decideResponse;
-    decideResponse = function(lower){
-      const dev = checkDevFaq(lower);
-      if(dev) return { answer: dev, meta: 'dev-faq' };
-      return oldDecide(lower);
-    }
+  // If none matched: respond with an intelligent fallback + suggestion
+  return pick(RESPONSE_VARIANTS.fallback);
+}
 
-    // ---------- some initial sample exchange ----------
-    setTimeout(()=> {
-      addMessage("Tip: try 'What is Truth Theta?' or say 'I'm sad' if you want a comforting message.", 'bot', 'hint');
-    }, 1200);
+// UI wiring
+document.getElementById('sendBtn').addEventListener('click', sendInput);
+document.getElementById('input').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') sendInput();
+});
 
-    // ---------- little keyboard accessibility ---------- 
-    inputEl.setAttribute('aria-label','Chat input');
-    sendBtn.setAttribute('aria-label','Send message');
+// quick sample links
+document.querySelectorAll('.quick a').forEach(a=>{
+  a.addEventListener('click', (ev)=>{
+    ev.preventDefault();
+    const sample = a.dataset.sample;
+    document.getElementById('input').value = sample;
+    sendInput();
+  });
+});
 
-    // DONE
-  </script>
+async function sendInput(){
+  const input = document.getElementById('input');
+  const text = input.value.trim();
+  if (!text) return;
+  appendMessage(text, 'user');
+  input.value = '';
+  appendMessage("Thinking...", 'bot');
+  // wait a little to feel natural
+  await delay(350 + Math.random()*600);
+
+  // remove last "Thinking..." message
+  const msgs = document.getElementById('messages');
+  const children = Array.from(msgs.children);
+  if(children.length){
+    const last = children[children.length-1];
+    if(last && last.textContent && last.textContent.includes('Thinking...')) last.remove();
+  }
+
+  // get reply (could be async)
+  let reply;
+  try {
+    reply = await fetchRespond(text);
+  } catch(err){
+    reply = "Oops, I had trouble thinking — try again or ask a simpler question.";
+  }
+
+  appendMessage(reply, 'bot');
+}
+
+// small util
+function delay(ms){ return new Promise(res => setTimeout(res, ms)); }
+
+/* --- OPTIONAL: enable API mode ---
+ If you later want to call OpenAI or another model:
+ 1) Replace fetchRespond(userText) with an async function that calls your server or fetches OpenAI directly.
+ 2) If you call OpenAI directly from the browser, you must proxy your key (not safe client-side).
+ 3) Best practice: create a tiny serverless function on Vercel that holds the API key,
+    call that endpoint from here (POST the input), and return the generated text.
+*/
+</script>
 </body>
 </html>
