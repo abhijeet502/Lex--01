@@ -3,19 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lex 01 - Abhi's Live AI Assistant</title>
+<title>Lex 01 - Abhi's AI Assistant</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-body { font-family: 'Inter', sans-serif; background: linear-gradient(180deg,#ffe4e6 0%,#fbcfe8 100%); display:flex; flex-direction:column; align-items:center; min-height:100vh; }
-#chat-container { max-width:600px;width:100%;display:flex;flex-direction:column;flex-grow:1;background:white;box-shadow:0 8px 30px rgba(219,39,119,0.2);border-radius:1.5rem;margin:1rem;overflow:hidden;}
-#chat-window { flex-grow:1; padding:1.5rem; overflow-y:auto; scroll-behavior:smooth; }
+body { font-family:'Inter',sans-serif; background:linear-gradient(180deg,#ffe4e6 0%,#fbcfe8 100%); display:flex; flex-direction:column; align-items:center; min-height:100vh; }
+#chat-container { max-width:600px;width:100%;display:flex;flex-direction:column;flex-grow:1;background:white;box-shadow:0 8px 30px rgba(219,39,119,0.2);border-radius:1.5rem;margin:1rem;overflow:hidden; }
+#chat-window { flex-grow:1;padding:1.5rem;overflow-y:auto;scroll-behavior:smooth; }
 .message-row { display:flex; align-items:flex-end; margin-bottom:1rem; }
 .message { max-width:85%; padding:0.75rem 1rem; border-radius:1.5rem; line-height:1.5; word-wrap:break-word; position:relative; }
 .user-row { justify-content:flex-end; }
-.user-message { background-color:#db2777; color:white; border-bottom-right-radius:0.25rem; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+.user-message { background-color:#db2777;color:white;border-bottom-right-radius:0.25rem; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
 .bot-row { justify-content:flex-start; }
-.bot-message { background-color:#fbcfe8; color:#4c0519; border-bottom-left-radius:0.25rem; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column; }
+.bot-message { background-color:#fbcfe8;color:#4c0519;border-bottom-left-radius:0.25rem; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column; }
 .bot-message-text { margin-bottom:0.25rem; }
 .copy-button { cursor:pointer; margin-left:0.5rem; width:20px; height:20px; color:#db2777; opacity:0.6; transition:opacity 0.1s; }
 .copy-button:hover { opacity:1; }
@@ -91,7 +91,7 @@ async function callOpenAIApi(retries=0){
         let data;
         try{data=await res.json();}catch(e){throw new Error('Server returned non-JSON response');}
         if(res.status===429){
-            if(retries<5){appendMessage('🚨 Rate limit hit. Retrying in 5 seconds...','bot'); await new Promise(r=>setTimeout(r,5000)); return callOpenAIApi(retries+1);}
+            if(retries<3){appendMessage('🚨 Rate limit hit. Retrying in 5 seconds...','bot'); await new Promise(r=>setTimeout(r,5000)); return callOpenAIApi(retries+1);}
             else throw new Error('Too many requests. Try later.');
         }
         if(!res.ok) throw new Error(data.error||'OpenAI API error');
