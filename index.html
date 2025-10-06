@@ -32,7 +32,7 @@ footer{margin-top:auto;padding:1rem;text-align:center;width:100%;color:#f472b6;f
 <div id="chat-container" class="mt-4 md:mt-8 mb-4">
 <header class="p-4 bg-pink-300 text-rose-900 text-center rounded-t-2xl">
 <h1 class="text-3xl font-extrabold tracking-tight text-pink-100 bg-rose-900 inline-block px-3 py-1 rounded-full shadow-lg">Hey I am Lex 01 🎀✨</h1>
-<p class="text-sm opacity-90 mt-1">Named after Abhi's dog, powered by OpenAI. Ask me anything! 🐾</p>
+<p class="text-sm opacity-90 mt-1">Named after Abhi's dog, powered by AI. Ask me anything! 🐾</p>
 </header>
 
 <div id="chat-window"></div>
@@ -53,7 +53,7 @@ footer{margin-top:auto;padding:1rem;text-align:center;width:100%;color:#f472b6;f
 const chatWindow=document.getElementById('chat-window');
 const userInput=document.getElementById('user-input');
 const sendButton=document.getElementById('send-button');
-const API_URL='/api/chat';
+const API_URL='https://free-gpt-api.dev/api/v1/chat/completions'; // Free, no-signup API!
 let chatHistory=[];
 
 function appendMessage(text,sender){
@@ -61,7 +61,8 @@ function appendMessage(text,sender){
     row.classList.add('message-row',sender+'-row');
     const msgDiv=document.createElement('div');
     msgDiv.classList.add('message',sender+'-message');
-    msgDiv.innerHTML=text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+    msgDiv.innerHTML=text.replace(/**(.*?)**/g,'<strong>$1</strong>').replace(/
+/g,'<br>');
     row.appendChild(msgDiv);
     chatWindow.appendChild(row);
     chatWindow.scrollTop=chatWindow.scrollHeight;
@@ -81,20 +82,25 @@ function showTyping(){
 }
 function hideTyping(row){if(row) row.remove();}
 
-async function callOpenAIApi(){
+async function callFreeAIAPI(){
     try{
+        // Prepare prompt from chat history for better memory
+        const messages=chatHistory.slice(-5).map(m=>{return {role:m.role,content:m.content}});
+        // Prepare request
+        const payload={
+            model:"gpt-3.5-turbo", // model is ignored by most free APIs but required
+            messages:messages
+        };
         const res=await fetch(API_URL,{
             method:'POST',
             headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({messages:chatHistory.map(m=>({role:m.role==='user'?'user':'assistant',content:m.content}))})
+            body:JSON.stringify(payload)
         });
         let data;
         try{data=await res.json();}catch(e){throw new Error('Server returned non-JSON response');}
-
-        if(res.status===429) throw new Error('OpenAI rate limit reached. Please try again in a minute.');
-        if(!res.ok) throw new Error(data.error || 'OpenAI API error');
-
-        return data.response;
+        if(!res.ok) throw new Error(data.error || 'API error');
+        // Some free APIs respond with {choices: [{ message: { content }}]}
+        return data.choices?.[0]?.message?.content || data.response || 'No response.';
     }catch(err){throw new Error(err.message||'Network failed');}
 }
 
@@ -106,7 +112,7 @@ async function sendMessage(){
     appendMessage(userText,'user');
     const typing=showTyping();
     try{
-        const botResp=await callOpenAIApi();
+        const botResp=await callFreeAIAPI();
         chatHistory.push({role:'assistant',content:botResp});
         hideTyping(typing);
         appendMessage(botResp,'bot');
