@@ -81,7 +81,7 @@ function showTyping(){
 }
 function hideTyping(row){if(row) row.remove();}
 
-async function callOpenAIApi(retries=0){
+async function callOpenAIApi(){
     try{
         const res=await fetch(API_URL,{
             method:'POST',
@@ -90,11 +90,10 @@ async function callOpenAIApi(retries=0){
         });
         let data;
         try{data=await res.json();}catch(e){throw new Error('Server returned non-JSON response');}
-        if(res.status===429){
-            if(retries<3){appendMessage('🚨 Rate limit hit. Retrying in 5 seconds...','bot'); await new Promise(r=>setTimeout(r,5000)); return callOpenAIApi(retries+1);}
-            else throw new Error('Too many requests. Try later.');
-        }
-        if(!res.ok) throw new Error(data.error||'OpenAI API error');
+
+        if(res.status===429) throw new Error('OpenAI rate limit reached. Please try again in a minute.');
+        if(!res.ok) throw new Error(data.error || 'OpenAI API error');
+
         return data.response;
     }catch(err){throw new Error(err.message||'Network failed');}
 }
