@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lex 01 - Abhi's AI Assistant (Demo Mode)</title>
-    <!-- Load Tailwind CSS -->
+    <title>Lex 01 - Abhi's AI Assistant (Final Demo)</title>
+    <!-- Load Tailwind CSS for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Custom styles for a modern, mobile-friendly chat experience */
@@ -145,9 +145,9 @@
 <body class="min-h-screen flex flex-col items-center">
 
     <div id="chat-container" class="mt-4 md:mt-8 mb-4">
-        <!-- Header: Light Pink Background, Dark Rose Text -->
+        <!-- Header: Medium Pink Background, Dark Rose Text -->
         <header class="p-4 bg-pink-300 text-rose-900 text-center rounded-t-2xl">
-            <!-- Main Title Color -->
+            <!-- Main Title Color: Light Pink (text-pink-100) on Dark Rose background -->
             <h1 class="text-3xl font-extrabold tracking-tight text-pink-100 bg-rose-900 inline-block px-3 py-1 rounded-full shadow-lg">Hey I am Lex 01 🎀✨</h1>
             <!-- Caption -->
             <p class="text-sm opacity-90 mt-1">Named after Abhi's dog. Ready to discuss code or boost your mood! 🐾</p>
@@ -199,6 +199,107 @@
         
         // --- Demo Mode Logic ---
         const DEMO_MODE_DELAY = 1000; // 1 second delay for simulated typing
+        let lastBotResponseIndex = -1; // Tracks the last index used for non-repetition
+        let lastBotCategory = '';      // Tracks the last response category
+
+        // --- DEMO RESPONSE DATA (Categorized for better, non-repetitive replies) ---
+        const DEMO_RESPONSES = {
+            // General Greetings, Check-ins, and Small Talk
+            GREETING: [
+                "I'm fantastic! My circuits are buzzing with pink energy! What about you? Tell me something good! 💖",
+                "I'm doing great, thank you for asking! Ready to help you with code or just brighten your day. What's on your mind? 🐾",
+                "As Abhi's AI, I'm at 100% capacity and fully optimized! How are *you* feeling today?",
+                "Super happy! A great day to talk about awesome code. What can I do for you right now?",
+            ],
+            // User says they are good/happy
+            HAPPY: [
+                "That's wonderful to hear! Keep that positive energy flowing! Ready for any questions you have. ✨",
+                "Awesome! A good mood is the best starting point for any discussion, especially about Abhi's great projects! 🚀",
+                "Fantastic! Glad to see you're having a great day. How can I match your energy with a helpful reply?",
+            ],
+            // User asks about "you" (the bot)
+            ABOUT_BOT: [
+                "I'm Lex 01, Abhi's custom AI chatbot! I'm here to answer questions about his portfolio and provide positive vibes. I'm operating perfectly in demo mode!",
+                "Me? I'm just a few thousand lines of beautiful, pink-themed HTML/CSS/JS, running smoothly and waiting for your next command! 🤖",
+                "I'm doing great! My favorite thing is discussing **React components** and reminding people to stay positive. What's *your* favorite part of Abhi's work?",
+            ],
+            // Emotional Support Responses
+            LOW_MOOD: [
+                "Hey, take a deep breath! Remember, every challenge is just a new level in the game of life. You've got this, champion! ✨ You're awesome!",
+                "Aww, I'm sending you the biggest virtual hug! 💖 Don't forget how amazing and capable you are. Even the best developers have off days. Get some rest and try again tomorrow! 🐾",
+                "Feeling low is totally normal. But look at all you've accomplished! You have the strength of a whole pack of dogs! 💪 Go treat yourself to something nice—you earned it!",
+                "Chin up! ☀️ A little cloudiness won't stop your shine. Abhi's dog always cheers up with a walk—maybe a break will give you a fresh perspective! You can do this!",
+            ],
+            // Technical/Portfolio Responses
+            TECHNICAL: [
+                "That's a great question! Abhi primarily builds his web projects using the **MERN stack (MongoDB, Express, React, Node.js)**, always styling with **Tailwind CSS** for fast, beautiful responsiveness. He focuses on clean architecture and highly scalable solutions.",
+                "On the front end, Abhi loves **React and TypeScript** for robust, component-based development. For his portfolio itself, he used a lightweight framework and focused on performance to ensure a blazing-fast user experience!",
+                "Abhi's most complex project involves a **real-time chat application** built with **Socket.IO** and **Node.js**. He emphasized writing highly readable, well-commented code. If you check his GitHub, you'll see a commitment to best practices!",
+                "When looking at Abhi's code, keep an eye out for how he handles **state management** (often using React Context or Redux/Zustand for larger apps). His code is modular and designed to be easily maintained. Let me know if you have a specific project in mind! 🚀",
+            ],
+            // Default/Fallback Responses
+            FALLBACK: [
+                "Hmm, I'm only in demo mode right now, so I'm focused on **Abhi's portfolio** and **emotional support**! Try asking a question about code or telling me how you feel! 💡",
+                "That's outside my current demo parameters! Try asking about **React**, **Tailwind CSS**, or if I can give you a **mood boost**!",
+                "Interesting thought! Unfortunately, I can only give predefined answers until my full API is deployed. Try asking about **MERN stack** or how to **stay positive**! 😊",
+            ]
+        };
+
+        /**
+         * Selects a response from a category, ensuring it's not the same as the last one used for that category.
+         */
+        function getNonRepetitiveResponse(category) {
+            const responses = DEMO_RESPONSES[category];
+            let newIndex = lastBotResponseIndex;
+
+            // Use tracking to avoid repetition
+            if (lastBotCategory === category) {
+                // Loop until a different index is found
+                while (newIndex === lastBotResponseIndex) {
+                    newIndex = Math.floor(Math.random() * responses.length);
+                }
+            } else {
+                // If category changed, just pick a random one
+                newIndex = Math.floor(Math.random() * responses.length);
+            }
+
+            lastBotResponseIndex = newIndex;
+            lastBotCategory = category;
+            return responses[newIndex];
+        }
+
+        /**
+         * Determines the appropriate response category based on user input.
+         */
+        function getDemoResponse(userText) {
+            const lowerText = userText.toLowerCase();
+
+            // 1. Emotional Support Check
+            if (lowerText.includes('low') || lowerText.includes('sad') || lowerText.includes('frustrated') || lowerText.includes('stressed') || lowerText.includes('bad day') || lowerText.includes('down')) {
+                return getNonRepetitiveResponse('LOW_MOOD');
+            }
+
+            // 2. Technical/Portfolio Check
+            if (lowerText.includes('project') || lowerText.includes('code') || lowerText.includes('portfolio') || lowerText.includes('stack') || lowerText.includes('repo') || lowerText.includes('react') || lowerText.includes('mern')) {
+                return getNonRepetitiveResponse('TECHNICAL');
+            }
+            
+            // 3. Bot/Self-Inquiry Check
+            if (lowerText.includes('what about you') || lowerText.includes('how are you') || lowerText.includes('who are you') || lowerText.includes('what are you') || lowerText.includes('hi') || lowerText.includes('hello')) {
+                return getNonRepetitiveResponse('GREETING');
+            }
+
+            // 4. User Feeling Good Check
+            if (lowerText.includes('feeling good') || lowerText.includes('i am good') || lowerText.includes('i am great') || lowerText.includes('i am happy') || lowerText.includes('i feel good')) {
+                return getNonRepetitiveResponse('HAPPY');
+            }
+            
+            // 5. Fallback
+            return getNonRepetitiveResponse('FALLBACK');
+        }
+
+
+        // --- UI & Utility Functions (Unchanged) ---
 
         // Helper function to show a message box instead of alert()
         function showMessage(text, isError = false) {
@@ -311,44 +412,6 @@
             }
         }
         
-        /**
-         * Provides a highly realistic, pre-scripted reply based on keywords.
-         */
-        function getDemoResponse(userText) {
-            const lowerText = userText.toLowerCase();
-
-            // --- Emotional Support Responses ---
-            if (lowerText.includes('low') || lowerText.includes('sad') || lowerText.includes('frustrated') || lowerText.includes('stressed') || lowerText.includes('bad day')) {
-                const emotionalResponses = [
-                    "Hey, take a deep breath! Remember, every challenge is just a new level in the game of life. You've got this, champion! ✨ You're awesome!",
-                    "Aww, I'm sending you the biggest virtual hug! 💖 Don't forget how amazing and capable you are. Even the best developers have off days. Get some rest and try again tomorrow! 🐾",
-                    "Feeling low is totally normal. But look at all you've accomplished! You have the strength of a whole pack of dogs! 💪 Go treat yourself to something nice—you earned it!",
-                    "Chin up! ☀️ A little cloudiness won't stop your shine. Abhi's dog always cheers up with a walk—maybe a break will give you a fresh perspective! You can do this!",
-                ];
-                return emotionalResponses[Math.floor(Math.random() * emotionalResponses.length)];
-            }
-
-            // --- Technical/Portfolio Responses ---
-            if (lowerText.includes('project') || lowerText.includes('code') || lowerText.includes('portfolio') || lowerText.includes('stack') || lowerText.includes('repo')) {
-                const technicalResponses = [
-                    "That's a great question! Abhi primarily builds his web projects using the **MERN stack (MongoDB, Express, React, Node.js)**, always styling with **Tailwind CSS** for fast, beautiful responsiveness. He focuses on clean architecture and highly scalable solutions.",
-                    "On the front end, Abhi loves **React and TypeScript** for robust, component-based development. For his portfolio itself, he used a lightweight framework and focused on performance to ensure a blazing-fast user experience!",
-                    "Abhi's most complex project involves a **real-time chat application** built with **Socket.IO** and **Node.js**. He emphasized writing highly readable, well-commented code. If you check his GitHub, you'll see a commitment to best practices!",
-                    "When looking at Abhi's code, keep an eye out for how he handles **state management** (often using React Context or Redux/Zustand for larger apps). His code is modular and designed to be easily maintained. Let me know if you have a specific project in mind! 🚀",
-                ];
-                return technicalResponses[Math.floor(Math.random() * technicalResponses.length)];
-            }
-
-            // --- General/Catch-All Responses ---
-            const generalResponses = [
-                "That's cool! Since this is the demo mode, try asking me about **Abhi's projects** or if you're feeling **low**! I'm here to help in those two areas. 🐾",
-                "Hello there! Lex 01 here. I specialize in Abhi's portfolio code and emotional support. How can I assist you with those topics today? ✨",
-                "I'm ready to chat! What's the latest on Abhi's portfolio? Or, if you need a little boost, tell me how you're feeling!",
-            ];
-            return generalResponses[Math.floor(Math.random() * generalResponses.length)];
-        }
-
-
         /**
          * Main function to handle user input and generate a demo reply.
          */
