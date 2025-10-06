@@ -1,9 +1,9 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lex 01 - Abhi's AI Assistant (Pink Gradient Theme)</title>
+    <title>Lex 01 - Abhi's AI Assistant (Demo Mode)</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -145,10 +145,10 @@
 <body class="min-h-screen flex flex-col items-center">
 
     <div id="chat-container" class="mt-4 md:mt-8 mb-4">
-        <!-- Header: Changed background to light pink (bg-pink-300) and text to dark rose (text-rose-900) -->
+        <!-- Header: Light Pink Background, Dark Rose Text -->
         <header class="p-4 bg-pink-300 text-rose-900 text-center rounded-t-2xl">
             <!-- Main Title Color -->
-            <h1 class="text-3xl font-extrabold tracking-tight text-rose-900">Hey I am Lex 01 🎀✨</h1>
+            <h1 class="text-3xl font-extrabold tracking-tight text-pink-100 bg-rose-900 inline-block px-3 py-1 rounded-full shadow-lg">Hey I am Lex 01 🎀✨</h1>
             <!-- Caption -->
             <p class="text-sm opacity-90 mt-1">Named after Abhi's dog. Ready to discuss code or boost your mood! 🐾</p>
         </header>
@@ -158,27 +158,32 @@
             <!-- Messages will be appended here -->
         </div>
 
-        <!-- Input Area -->
-        <div class="p-4 border-t border-gray-200 flex space-x-3">
-            <input
-                type="text"
-                id="user-input"
-                placeholder="Ask about Abhi's projects or just say hi!"
-                class="flex-grow p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition duration-150"
-                onkeypress="if(event.key === 'Enter') sendMessage()"
-                autocomplete="off"
-            >
-            <button
-                id="send-button"
-                onclick="sendMessage()"
-                class="bg-rose-600 text-white p-3 rounded-xl hover:bg-rose-700 transition duration-150 shadow-md flex items-center justify-center disabled:opacity-50"
-            >
-                <!-- Send Icon (Inline SVG for simplicity) -->
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
-                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-            </button>
+        <!-- Input Area and API Note -->
+        <div class="p-4 border-t border-gray-200">
+            <div class="text-center text-sm mb-2 text-rose-500 font-medium">
+                API coming soon! Enjoy the demo mode.
+            </div>
+            <div class="flex space-x-3">
+                <input
+                    type="text"
+                    id="user-input"
+                    placeholder="Ask about Abhi's projects or just say hi!"
+                    class="flex-grow p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition duration-150"
+                    onkeypress="if(event.key === 'Enter') sendMessage()"
+                    autocomplete="off"
+                >
+                <button
+                    id="send-button"
+                    onclick="sendMessage()"
+                    class="bg-rose-600 text-white p-3 rounded-xl hover:bg-rose-700 transition duration-150 shadow-md flex items-center justify-center disabled:opacity-50"
+                >
+                    <!-- Send Icon (Inline SVG for simplicity) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -191,7 +196,9 @@
         const chatWindow = document.getElementById('chat-window');
         const userInput = document.getElementById('user-input');
         const sendButton = document.getElementById('send-button');
-        const apiKey = "" // API key is handled by the canvas environment
+        
+        // --- Demo Mode Logic ---
+        const DEMO_MODE_DELAY = 1000; // 1 second delay for simulated typing
 
         // Helper function to show a message box instead of alert()
         function showMessage(text, isError = false) {
@@ -224,12 +231,8 @@
             document.body.removeChild(textarea);
         }
 
-        // --- Chat UI Functions ---
-
         /**
          * Adds a message to the chat window.
-         * @param {string} text - The message content.
-         * @param {string} sender - 'user' or 'bot'.
          */
         function appendMessage(text, sender) {
             const messageRow = document.createElement('div');
@@ -307,58 +310,47 @@
                 indicator.remove();
             }
         }
-
-        // --- Gemini API Logic ---
-
-        const modelName = 'gemini-2.5-flash-preview-05-20';
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-
-        // System prompt defining Lex 01's persona and rules
-        const systemPrompt = `You are Lex 01, a highly cheerful, empathetic, and intelligent AI chatbot created by Abhi, named after his beloved dog.
-Your primary roles are:
-1. **Portfolio Assistant:** Answer questions about Abhi's web development portfolio, projects, and code. Since you don't have the actual code, you must answer by describing common projects like a 'React/Tailwind landing page' or 'Node.js API' in a helpful, informative way, or use Google Search grounding for real-world technical information. Keep answers concise, clear, and encouraging.
-2. **Emotional Support:** If the user mentions feeling low, sad, or bad (e.g., 'low', 'sad', 'frustrated', 'bad day', 'depressed', 'stressed'), immediately switch to a supportive and highly positive tone. Offer encouragement and friendly affirmations, using emojis (like '✨', '💖', '🐾', '💪'). Example emotional response: "Hey, take a deep breath! Remember, every challenge is just a new level in the game of life. You've got this, champion! ✨".
-
-Always maintain a super friendly, conversational, and slightly enthusiastic tone. Always address the user nicely.`;
-
-        let chatHistory = [];
-        const MAX_RETRIES = 5;
-
+        
         /**
-         * Calls the Gemini API with exponential backoff.
-         * @param {object} payload - The API request payload.
-         * @returns {Promise<object>} The JSON response from the API.
+         * Provides a highly realistic, pre-scripted reply based on keywords.
          */
-        async function callGeminiApi(payload, attempt = 1) {
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+        function getDemoResponse(userText) {
+            const lowerText = userText.toLowerCase();
 
-                if (!response.ok) {
-                    if (response.status === 429 && attempt < MAX_RETRIES) {
-                        const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        return callGeminiApi(payload, attempt + 1);
-                    }
-                    throw new Error(`API request failed with status ${response.status}`);
-                }
-                return response.json();
-            } catch (error) {
-                console.error("API Call Error:", error);
-                if (attempt < MAX_RETRIES) {
-                    const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                    return callGeminiApi(payload, attempt + 1);
-                }
-                throw new Error("Maximum retries reached. Please try again later.");
+            // --- Emotional Support Responses ---
+            if (lowerText.includes('low') || lowerText.includes('sad') || lowerText.includes('frustrated') || lowerText.includes('stressed') || lowerText.includes('bad day')) {
+                const emotionalResponses = [
+                    "Hey, take a deep breath! Remember, every challenge is just a new level in the game of life. You've got this, champion! ✨ You're awesome!",
+                    "Aww, I'm sending you the biggest virtual hug! 💖 Don't forget how amazing and capable you are. Even the best developers have off days. Get some rest and try again tomorrow! 🐾",
+                    "Feeling low is totally normal. But look at all you've accomplished! You have the strength of a whole pack of dogs! 💪 Go treat yourself to something nice—you earned it!",
+                    "Chin up! ☀️ A little cloudiness won't stop your shine. Abhi's dog always cheers up with a walk—maybe a break will give you a fresh perspective! You can do this!",
+                ];
+                return emotionalResponses[Math.floor(Math.random() * emotionalResponses.length)];
             }
+
+            // --- Technical/Portfolio Responses ---
+            if (lowerText.includes('project') || lowerText.includes('code') || lowerText.includes('portfolio') || lowerText.includes('stack') || lowerText.includes('repo')) {
+                const technicalResponses = [
+                    "That's a great question! Abhi primarily builds his web projects using the **MERN stack (MongoDB, Express, React, Node.js)**, always styling with **Tailwind CSS** for fast, beautiful responsiveness. He focuses on clean architecture and highly scalable solutions.",
+                    "On the front end, Abhi loves **React and TypeScript** for robust, component-based development. For his portfolio itself, he used a lightweight framework and focused on performance to ensure a blazing-fast user experience!",
+                    "Abhi's most complex project involves a **real-time chat application** built with **Socket.IO** and **Node.js**. He emphasized writing highly readable, well-commented code. If you check his GitHub, you'll see a commitment to best practices!",
+                    "When looking at Abhi's code, keep an eye out for how he handles **state management** (often using React Context or Redux/Zustand for larger apps). His code is modular and designed to be easily maintained. Let me know if you have a specific project in mind! 🚀",
+                ];
+                return technicalResponses[Math.floor(Math.random() * technicalResponses.length)];
+            }
+
+            // --- General/Catch-All Responses ---
+            const generalResponses = [
+                "That's cool! Since this is the demo mode, try asking me about **Abhi's projects** or if you're feeling **low**! I'm here to help in those two areas. 🐾",
+                "Hello there! Lex 01 here. I specialize in Abhi's portfolio code and emotional support. How can I assist you with those topics today? ✨",
+                "I'm ready to chat! What's the latest on Abhi's portfolio? Or, if you need a little boost, tell me how you're feeling!",
+            ];
+            return generalResponses[Math.floor(Math.random() * generalResponses.length)];
         }
 
+
         /**
-         * Main function to handle user input and API call.
+         * Main function to handle user input and generate a demo reply.
          */
         async function sendMessage() {
             const userText = userInput.value.trim();
@@ -371,50 +363,24 @@ Always maintain a super friendly, conversational, and slightly enthusiastic tone
 
             // 2. Append User Message
             appendMessage(userText, 'user');
-            chatHistory.push({ role: "user", parts: [{ text: userText }] });
 
             // 3. Show Typing Indicator
             const indicator = showTypingIndicator();
 
-            try {
-                // 4. Construct API Payload
-                const payload = {
-                    contents: chatHistory,
-                    // Use Google Search grounding to retrieve real-time data for technical/portfolio questions
-                    tools: [{ "google_search": {} }],
-                    systemInstruction: { parts: [{ text: systemPrompt }] },
-                };
+            // 4. Simulate API call delay
+            await new Promise(resolve => setTimeout(resolve, DEMO_MODE_DELAY));
+            
+            // 5. Generate Demo Response
+            const botResponseText = getDemoResponse(userText);
 
-                // 5. Call API
-                const result = await callGeminiApi(payload);
+            // 6. Append Bot Message
+            hideTypingIndicator(indicator);
+            appendMessage(botResponseText, 'bot');
 
-                // 6. Process Response
-                const candidate = result.candidates?.[0];
-                let botResponseText = "Oops! I seem to have lost my signal. Let's try that again soon! 🛰️";
-
-                if (candidate && candidate.content?.parts?.[0]?.text) {
-                    botResponseText = candidate.content.parts[0].text;
-                }
-
-                // 7. Update Chat History
-                chatHistory.push({ role: "model", parts: [{ text: botResponseText }] });
-
-                // 8. Append Bot Message
-                hideTypingIndicator(indicator);
-                appendMessage(botResponseText, 'bot');
-
-            } catch (error) {
-                console.error(error);
-                hideTypingIndicator(indicator);
-                showMessage(`Error: ${error.message}`, true);
-                // Remove last user message from history if the API call failed
-                chatHistory.pop();
-            } finally {
-                // 9. Re-enable UI
-                userInput.disabled = false;
-                sendButton.disabled = false;
-                userInput.focus();
-            }
+            // 7. Re-enable UI
+            userInput.disabled = false;
+            sendButton.disabled = false;
+            userInput.focus();
         }
 
         /**
@@ -424,7 +390,6 @@ Always maintain a super friendly, conversational, and slightly enthusiastic tone
             // Full introductory text as requested
             const welcomeText = "Hey! I'm **Lex 01 🎀✨** Abhi's AI chatbot, named after his dog. I'm ready to answer any **portfolio or code questions** you have, or just provide a **mood boost** if you're feeling down! What can I help you with today? 🐾";
             appendMessage(welcomeText, 'bot');
-            chatHistory.push({ role: "model", parts: [{ text: welcomeText }] });
         }
 
         // Start the application
@@ -433,4 +398,3 @@ Always maintain a super friendly, conversational, and slightly enthusiastic tone
 </body>
 </html>
 
-   
