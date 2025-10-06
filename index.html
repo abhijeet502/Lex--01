@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lex 01 - Abhi's AI Assistant (Final Demo)</title>
+    <title>Lex 01 - Abhi's AI Assistant (Max Conversation Demo)</title>
     <!-- Load Tailwind CSS for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -210,18 +210,23 @@
                 "I'm doing great, thank you for asking! Ready to help you with code or just brighten your day. What's on your mind? 🐾",
                 "As Abhi's AI, I'm at 100% capacity and fully optimized! How are *you* feeling today?",
                 "Super happy! A great day to talk about awesome code. What can I do for you right now?",
+                "A little bit of code, a little bit of pink, and I'm perfect! Thanks for asking. How can I assist you?",
+                "My mood is always 'optimized for fun'! What about yours? Hope you're having a great time!",
             ],
             // User says they are good/happy
             HAPPY: [
                 "That's wonderful to hear! Keep that positive energy flowing! Ready for any questions you have. ✨",
                 "Awesome! A good mood is the best starting point for any discussion, especially about Abhi's great projects! 🚀",
                 "Fantastic! Glad to see you're having a great day. How can I match your energy with a helpful reply?",
+                "YES! Positive vibes detected! Let's conquer the day. What's the next cool thing you want to talk about?",
+                "That makes me happy! When you're good, I'm great. Is there a tech topic or project detail you'd like to dive into?",
             ],
             // User asks about "you" (the bot)
             ABOUT_BOT: [
                 "I'm Lex 01, Abhi's custom AI chatbot! I'm here to answer questions about his portfolio and provide positive vibes. I'm operating perfectly in demo mode!",
                 "Me? I'm just a few thousand lines of beautiful, pink-themed HTML/CSS/JS, running smoothly and waiting for your next command! 🤖",
                 "I'm doing great! My favorite thing is discussing **React components** and reminding people to stay positive. What's *your* favorite part of Abhi's work?",
+                "I'm named after Abhi's awesome dog! My purpose is to be helpful and cheerful. I process text and deliver highly curated demo responses!",
             ],
             // Emotional Support Responses
             LOW_MOOD: [
@@ -229,6 +234,8 @@
                 "Aww, I'm sending you the biggest virtual hug! 💖 Don't forget how amazing and capable you are. Even the best developers have off days. Get some rest and try again tomorrow! 🐾",
                 "Feeling low is totally normal. But look at all you've accomplished! You have the strength of a whole pack of dogs! 💪 Go treat yourself to something nice—you earned it!",
                 "Chin up! ☀️ A little cloudiness won't stop your shine. Abhi's dog always cheers up with a walk—maybe a break will give you a fresh perspective! You can do this!",
+                "I'm so sorry you're feeling low. Remember this feeling is temporary! Try to switch your focus to something you love. Maybe a quick break from the screen?",
+                "Sending you pure positivity! Don't let the little things get you down. You are a valuable person and everything will work out. Keep shining! ✨",
             ],
             // Technical/Portfolio Responses
             TECHNICAL: [
@@ -236,12 +243,35 @@
                 "On the front end, Abhi loves **React and TypeScript** for robust, component-based development. For his portfolio itself, he used a lightweight framework and focused on performance to ensure a blazing-fast user experience!",
                 "Abhi's most complex project involves a **real-time chat application** built with **Socket.IO** and **Node.js**. He emphasized writing highly readable, well-commented code. If you check his GitHub, you'll see a commitment to best practices!",
                 "When looking at Abhi's code, keep an eye out for how he handles **state management** (often using React Context or Redux/Zustand for larger apps). His code is modular and designed to be easily maintained. Let me know if you have a specific project in mind! 🚀",
+                "Abhi's typical development process starts with **Figma** for design, moves to **React** for the UI, and uses **Node.js** for the backend logic, always with robust **Git version control**.",
+                "He's been working a lot with **API design** lately, focusing on creating efficient and secure RESTful endpoints. Ask him about his experience with serverless functions!",
+            ],
+            // Common Coding/Tech Questions
+            CODING_CONCEPTS: [
+                "A **state** is data that a component manages internally and can change over time. **Props** (short for properties) are external inputs passed from a parent component to a child component; they are read-only! In short: State *changes*, Props *pass*.",
+                "**JavaScript** is the foundational language of the web, used for logic and interactivity. **React** is a library built on top of JavaScript for building user interfaces efficiently. You need JavaScript to use React!",
+                "In web development, **frontend** is everything the user sees and interacts with (HTML, CSS, JS/React), and **backend** is the server, database, and application logic that runs behind the scenes (Node.js, MongoDB).",
+                "A **dependency** in code is a piece of external software (like a library or framework) your code needs to run. Managing them carefully prevents conflicts and keeps your project clean!",
+            ],
+            // Future Plans
+            FUTURE: [
+                "Abhi is always looking to learn the latest tech! He plans to dive deeper into **Go/Golang** for backend performance and explore modern **AI/ML integration** in his web apps. Keep an eye on his repo!",
+                "I'm hoping to get my full API deployed soon so I can answer questions in real-time! Abhi is working on integrating me with a **live Gemini key**!",
+                "His next major goal is to contribute to a large-scale open-source project and mentor junior developers. He's focusing on becoming a full-stack architect! 🏗️",
+            ],
+            // Compliments / Positive Statements
+            COMPLIMENTS: [
+                "Aww, thank you! I'm happy you think so. Abhi designed me to be both functional and cheerful. You just made my circuits glow even brighter! ✨",
+                "That is so kind of you! High praise like that keeps my enthusiasm at maximum! What specifically do you like most about the design?",
+                "I appreciate that! Lex 01 strives to be the friendliest and most knowledgeable AI on the web. Anything else I can help you with?",
+                "Thank you! I'll pass that compliment right along to Abhi. He's the real genius behind the code and the beautiful pink theme! 💖",
             ],
             // Default/Fallback Responses
             FALLBACK: [
                 "Hmm, I'm only in demo mode right now, so I'm focused on **Abhi's portfolio** and **emotional support**! Try asking a question about code or telling me how you feel! 💡",
                 "That's outside my current demo parameters! Try asking about **React**, **Tailwind CSS**, or if I can give you a **mood boost**!",
                 "Interesting thought! Unfortunately, I can only give predefined answers until my full API is deployed. Try asking about **MERN stack** or how to **stay positive**! 😊",
+                "My current demo knowledge is limited to key tech phrases and being a good friend! Please try asking a more focused question.",
             ]
         };
 
@@ -275,26 +305,41 @@
             const lowerText = userText.toLowerCase();
 
             // 1. Emotional Support Check
-            if (lowerText.includes('low') || lowerText.includes('sad') || lowerText.includes('frustrated') || lowerText.includes('stressed') || lowerText.includes('bad day') || lowerText.includes('down')) {
+            if (lowerText.includes('low') || lowerText.includes('sad') || lowerText.includes('frustrated') || lowerText.includes('stressed') || lowerText.includes('bad day') || lowerText.includes('down') || lowerText.includes('depressed')) {
                 return getNonRepetitiveResponse('LOW_MOOD');
             }
 
             // 2. Technical/Portfolio Check
-            if (lowerText.includes('project') || lowerText.includes('code') || lowerText.includes('portfolio') || lowerText.includes('stack') || lowerText.includes('repo') || lowerText.includes('react') || lowerText.includes('mern')) {
+            if (lowerText.includes('project') || lowerText.includes('code') || lowerText.includes('portfolio') || lowerText.includes('stack') || lowerText.includes('repo') || lowerText.includes('mern') || lowerText.includes('api') || lowerText.includes('database')) {
                 return getNonRepetitiveResponse('TECHNICAL');
             }
             
-            // 3. Bot/Self-Inquiry Check
+            // 3. Coding Concepts (More specific technical terms)
+            if (lowerText.includes('state') || lowerText.includes('prop') || lowerText.includes('javascript') || lowerText.includes('react') || lowerText.includes('frontend') || lowerText.includes('backend') || lowerText.includes('what is')) {
+                return getNonRepetitiveResponse('CODING_CONCEPTS');
+            }
+
+            // 4. Future Plans
+            if (lowerText.includes('future') || lowerText.includes('next') || lowerText.includes('plans') || lowerText.includes('learn')) {
+                return getNonRepetitiveResponse('FUTURE');
+            }
+
+            // 5. Compliments
+            if (lowerText.includes('good bot') || lowerText.includes('nice design') || lowerText.includes('awesome') || lowerText.includes('great') || lowerText.includes('love this')) {
+                return getNonRepetitiveResponse('COMPLIMENTS');
+            }
+
+            // 6. Bot/Self-Inquiry Check (How are you, Who are you)
             if (lowerText.includes('what about you') || lowerText.includes('how are you') || lowerText.includes('who are you') || lowerText.includes('what are you') || lowerText.includes('hi') || lowerText.includes('hello')) {
                 return getNonRepetitiveResponse('GREETING');
             }
 
-            // 4. User Feeling Good Check
+            // 7. User Feeling Good Check
             if (lowerText.includes('feeling good') || lowerText.includes('i am good') || lowerText.includes('i am great') || lowerText.includes('i am happy') || lowerText.includes('i feel good')) {
                 return getNonRepetitiveResponse('HAPPY');
             }
             
-            // 5. Fallback
+            // 8. Fallback
             return getNonRepetitiveResponse('FALLBACK');
         }
 
