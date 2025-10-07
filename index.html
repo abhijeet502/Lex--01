@@ -1,218 +1,370 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lex 01 - Abhi's AI Assistant</title>
-<!-- Load Tailwind CSS -->
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-body { font-family:'Inter',sans-serif; background:linear-gradient(180deg,#ffe4e6 0%,#fbcfe8 100%); display:flex; flex-direction:column; align-items:center; min-height:100vh; }
-#chat-container { max-width:600px;width:100%;display:flex;flex-direction:column;flex-grow:1;background:white;box-shadow:0 8px 30px rgba(219,39,119,0.2);border-radius:1.5rem;margin:1rem;overflow:hidden; }
-#chat-window { flex-grow:1;padding:1.5rem;overflow-y:auto;scroll-behavior:smooth; }
-.message-row { display:flex; align-items:flex-end; margin-bottom:1rem; }
-.message { max-width:85%; padding:0.75rem 1rem; border-radius:1.5rem; line-height:1.5; word-wrap:break-word; position:relative; }
-.user-row { justify-content:flex-end; }
-.user-message { background-color:#db2777;color:white;border-bottom-right-radius:0.25rem; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
-.bot-row { justify-content:flex-start; }
-.bot-message { background-color:#fbcfe8;color:#4c0519;border-bottom-left-radius:0.25rem; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column; }
-/* Ensure bolding works inside the message */
-.message strong { font-weight: 700; } 
-.copy-button { cursor:pointer; margin-left:0.5rem; width:20px; height:20px; color:#db2777; opacity:0.6; transition:opacity 0.1s; }
-.copy-button:hover { opacity:1; }
-/* Dot flashing animation styles */
-.dot-flashing { position:relative;width:10px;height:10px;border-radius:5px;background-color:#db2777; animation:dot-flashing 1s infinite alternate; }
-.dot-flashing::before,.dot-flashing::after{content:'';display:inline-block;position:absolute;top:0;width:10px;height:10px;border-radius:5px;background-color:#db2777;}
-.dot-flashing::before{left:-15px;animation-delay:0.5s;}
-.dot-flashing::after{left:15px;animation-delay:1s;}
-@keyframes dot-flashing{0%{opacity:0.5;}100%{opacity:1;}}
-footer{margin-top:auto;padding:1rem;text-align:center;width:100%;color:#f472b6;font-size:0.875rem;}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lex 01 - Abhi's AI Assistant</title>
+    <!-- Load Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for a modern, mobile-friendly chat experience */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(180deg, #ffe4e6 0%, #fbcfe8 100%); 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        #chat-container {
+            max-width: 600px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            background: white;
+            box-shadow: 0 8px 30px rgba(219, 39, 119, 0.2); 
+            border-radius: 1.5rem; 
+            margin: 1rem;
+            overflow: hidden;
+        }
+        #chat-window {
+            flex-grow: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        .message-row {
+            display: flex;
+            align-items: flex-end; 
+            margin-bottom: 1rem;
+        }
+        .message {
+            max-width: 85%;
+            padding: 0.75rem 1rem;
+            border-radius: 1.5rem;
+            line-height: 1.5;
+            word-wrap: break-word;
+            position: relative;
+        }
+        .user-row { justify-content: flex-end; }
+        .user-message {
+            background-color: #db2777;
+            color: white;
+            border-bottom-right-radius: 0.25rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .bot-row { justify-content: flex-start; }
+        .bot-message {
+            background-color: #fbcfe8; 
+            color: #4c0519; 
+            border-bottom-left-radius: 0.25rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+        .message strong { font-weight: 600; }
+        .copy-button {
+            cursor: pointer;
+            margin-left: 0.5rem;
+            width: 20px;
+            height: 20px;
+            color: #db2777; 
+            opacity: 0.6;
+            transition: opacity 0.1s;
+        }
+        .copy-button:hover { opacity: 1; }
+        .dot-flashing {
+            position: relative;
+            width: 10px;
+            height: 10px;
+            border-radius: 5px;
+            background-color: #db2777;
+            animation: dot-flashing 1s infinite alternate;
+            animation-delay: 0s;
+        }
+        .dot-flashing::before, .dot-flashing::after {
+            content: '';
+            display: inline-block;
+            position: absolute;
+            top: 0;
+            width: 10px;
+            height: 10px;
+            border-radius: 5px;
+            background-color: #db2777;
+        }
+        .dot-flashing::before {
+            left: -15px;
+            animation: dot-flashing 1s infinite alternate;
+            animation-delay: 0.5s;
+        }
+        .dot-flashing::after {
+            left: 15px;
+            animation: dot-flashing 1s infinite alternate;
+            animation-delay: 1s;
+        }
+        @keyframes dot-flashing {
+            0% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        footer {
+            margin-top: auto;
+            padding: 1rem;
+            text-align: center;
+            width: 100%;
+            color: #f472b6; 
+            font-size: 0.875rem;
+        }
+    </style>
 </head>
 <body class="min-h-screen flex flex-col items-center">
 
-<div id="chat-container" class="mt-4 md:mt-8 mb-4">
-    <header class="p-4 bg-pink-300 text-rose-900 text-center rounded-t-2xl">
-        <h1 class="text-3xl font-extrabold tracking-tight text-pink-100 bg-rose-900 inline-block px-3 py-1 rounded-full shadow-lg">Hey I am Lex 01 🎀✨</h1>
-        <p class="text-sm opacity-90 mt-1" id="subheader-text">Named after Abhi's dog, powered by AI. Ask me anything! 🐾</p>
-    </header>
-    <div id="chat-window"></div>
-    <div class="p-4 border-t border-gray-200">
-        <div class="flex space-x-3">
-            <input type="text" id="user-input" placeholder="Ask Lex 01 a question..." class="flex-grow p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition duration-150" autocomplete="off">
-            <button id="send-button" class="bg-rose-600 text-white p-3 rounded-xl hover:bg-rose-700 transition duration-150 shadow-md flex items-center justify-center disabled:opacity-50">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-            </button>
+    <div id="chat-container" class="mt-4 md:mt-8 mb-4">
+        <header class="p-4 bg-pink-300 text-rose-900 text-center rounded-t-2xl">
+            <h1 class="text-3xl font-extrabold tracking-tight text-pink-100 bg-rose-900 inline-block px-3 py-1 rounded-full shadow-lg">Hey I am Lex 01 🎀✨</h1>
+            <p class="text-sm opacity-90 mt-1">Named after Abhi's dog, currently running with **GPT AI** API. Ask me anything! 🐾</p>
+        </header>
+
+        <div id="chat-window">
+            <!-- Messages will be appended here -->
+        </div>
+
+        <div class="p-4 border-t border-gray-200">
+            <div class="flex space-x-3">
+                <input
+                    type="text"
+                    id="user-input"
+                    placeholder="Ask Lex 01 a question..."
+                    class="flex-grow p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition duration-150"
+                    onkeypress="if(event.key === 'Enter') sendMessage()"
+                    autocomplete="off"
+                >
+                <button
+                    id="send-button"
+                    onclick="sendMessage()"
+                    class="bg-rose-600 text-white p-3 rounded-xl hover:bg-rose-700 transition duration-150 shadow-md flex items-center justify-center disabled:opacity-50"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
-<footer>Crafted with 💖 by abhi 🎀</footer>
+    <footer>
+        Crafted with 💖 by abhi 🎀
+    </footer>
 
-<script>
-    const chatWindow = document.getElementById('chat-window');
-    const userInput = document.getElementById('user-input');
-    const sendButton = document.getElementById('send-button');
-    
-    // --- UPDATED API ENDPOINT ---
-    const API_URL = "https://api.aiproxy.io/api/gpt4free";
-    
-    // --- Utility Functions (Same as previous) ---
-
-    function appendMessage(text, sender) {
-        const row = document.createElement('div');
-        row.classList.add('message-row', sender + '-row');
-        const msgDiv = document.createElement('div');
-        msgDiv.classList.add('message', sender + '-message');
-
-        const formattedText = text
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\n/g, '<br>');
+    <script>
+        const chatWindow = document.getElementById('chat-window');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
         
-        if (sender === 'bot') {
-            const textContainer = document.createElement('span');
-            textContainer.innerHTML = formattedText;
-            msgDiv.appendChild(textContainer);
+        // --- UPDATED API ENDPOINT ---
+        const API_URL = "https://freegpt.one/api/completion";
+        
+        // --- Utility Functions ---
 
-            const copyBtn = document.createElement('button');
-            copyBtn.classList.add('copy-button');
-            copyBtn.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M15 10v6a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3h5"></path>
-                    <path d="M14 10h2a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3h-5a3 3 0 0 1-3-3v-2"></path>
-                    <path d="M10 15h2a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H9a3 3 0 0 0-3 3v5a3 3 0 0 0 3 3"></path>
-                </svg>
-            `;
-            copyBtn.onclick = () => console.log('Copy functionality not implemented yet.'); 
-            
-            const footerRow = document.createElement('div');
-            footerRow.classList.add('flex', 'justify-end', 'items-center', 'pt-1');
-            footerRow.appendChild(copyBtn);
-            msgDiv.appendChild(footerRow);
-        } else {
-            msgDiv.innerHTML = formattedText;
+        function showMessage(text, isError = false) {
+            const container = document.getElementById('chat-window');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `p-3 my-2 text-sm text-center font-medium rounded-lg ${isError ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`;
+            messageDiv.textContent = text;
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+            setTimeout(() => messageDiv.remove(), 5000);
         }
-
-        row.appendChild(msgDiv);
-        chatWindow.appendChild(row);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-    }
-
-    function showTyping() {
-        const row = document.createElement('div');
-        row.id = 'typing-indicator-row';
-        row.classList.add('message-row', 'bot-row');
-        const div = document.createElement('div');
-        div.classList.add('bot-message', 'flex', 'items-center', 'space-x-2', 'p-3');
-        div.innerHTML = `<span class="font-bold text-rose-800">Lex 01 is typing...</span><div class="dot-flashing"></div>`;
-        row.appendChild(div);
-        chatWindow.appendChild(row);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-        return row;
-    }
-    
-    function hideTyping(row) { 
-        if(row) row.remove(); 
-    }
-    
-    // --- UPDATED API CALL FUNCTION ---
-
-    /**
-     * Calls the external GPT4Free API using a POST request.
-     */
-    async function callFreeGPTApi(userText) {
-        // We include a persona prompt in the query for better results
-        const personaPrompt = `Act as Lex 01, Abhi's highly positive AI assistant. Your responses must be concise and relate to Abhi's professional portfolio (skills, projects, tech stack) or provide cheerful support. Always use the 🐾 emoji occasionally. User query: ${userText}`;
         
-        try {
-            const res = await fetch(API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    // The API expects the content in the 'prompt' field
-                    prompt: personaPrompt 
-                })
-            });
-            
-            let data;
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed'; 
+            document.body.appendChild(textarea);
+            textarea.select();
             try {
-                // The API should return JSON with a 'response' field
-                data = await res.json();
-            } catch(e) {
-                throw new Error('Received non-JSON response from AI service.');
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showMessage('Copied to clipboard! 📋');
+                } else {
+                    showMessage('Failed to copy. Please try manually.', true);
+                }
+            } catch (err) {
+                showMessage('Copying error: ' + err, true);
             }
+            document.body.removeChild(textarea);
+        }
 
-            if (!res.ok) {
-                // If the status is 4xx or 5xx, throw the error provided by the API
-                throw new Error(data.error || `API error with status ${res.status}.`);
-            }
+        function appendMessage(text, sender) {
+            const messageRow = document.createElement('div');
+            messageRow.classList.add('message-row', sender + '-row');
+
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender + '-message');
+
+            const formattedText = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
             
-            // Check for the expected response field
-            // FIX: Ensure we check for data.response as per API suggestion
-            return data.response || 'No specific response content was returned.';
+            if (sender === 'bot') {
+                const textContainer = document.createElement('span');
+                textContainer.classList.add('bot-message-text');
+                textContainer.innerHTML = formattedText;
+                messageDiv.appendChild(textContainer);
 
-        } catch(err) {
-            throw new Error(err.message || 'Network failed or API service is down.');
+                const copyBtn = document.createElement('button');
+                copyBtn.classList.add('copy-button');
+                copyBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 10v6a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3h5"></path>
+                        <path d="M14 10h2a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3h-5a3 3 0 0 1-3-3v-2"></path>
+                        <path d="M10 15h2a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H9a3 3 0 0 0-3 3v5a3 3 0 0 0 3 3"></path>
+                    </svg>
+                `;
+                copyBtn.onclick = () => copyToClipboard(text);
+                
+                const footerRow = document.createElement('div');
+                footerRow.classList.add('flex', 'justify-end', 'items-center', 'pt-1');
+                footerRow.appendChild(copyBtn);
+                messageDiv.appendChild(footerRow);
+
+            } else {
+                messageDiv.innerHTML = formattedText;
+            }
+
+            messageRow.appendChild(messageDiv);
+            chatWindow.appendChild(messageRow);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
         }
-    }
 
-    /**
-     * Main function to handle user input and API call.
-     */
-    async function sendMessage() {
-        const userText = userInput.value.trim();
-        if (!userText) return;
+        function showTypingIndicator() {
+            const indicatorRow = document.createElement('div');
+            indicatorRow.id = 'typing-indicator-row';
+            indicatorRow.classList.add('message-row', 'bot-row');
 
-        userInput.value = ''; 
-        userInput.disabled = true; 
-        sendButton.disabled = true;
+            const indicatorDiv = document.createElement('div');
+            indicatorDiv.id = 'typing-indicator';
+            indicatorDiv.classList.add('bot-message', 'shadow-sm', 'flex', 'items-center', 'space-x-2', 'p-3');
+            
+            indicatorDiv.innerHTML = `
+                <span class="font-bold text-rose-800">Lex 01 is typing...</span>
+                <div class="dot-flashing"></div>
+            `;
+            indicatorRow.appendChild(indicatorDiv);
+            chatWindow.appendChild(indicatorRow);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            return indicatorRow;
+        }
 
-        // Display user message
-        appendMessage(userText, 'user');
+        function hideTypingIndicator(indicator) {
+            if (indicator) {
+                indicator.remove();
+            }
+        }
         
-        // Show typing indicator
-        const typing = showTyping();
+        // --- UPDATED API CALL FUNCTION ---
+        /**
+         * Calls the external freegpt.one API using a POST request.
+         */
+        async function callFreeGPTApi(userText) {
+            // Context/persona for the AI
+            const personaPrompt = `Act as Lex 01, Abhi's highly positive AI assistant. Your responses must be concise and relate to Abhi's professional portfolio (skills, projects, tech stack) or provide cheerful support. Always use the 🐾 emoji occasionally. User query: ${userText}`;
+            
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        // This API often uses 'prompt' or 'content' for the user message. 
+                        // We will use 'prompt' as it's common.
+                        prompt: personaPrompt,
+                        // Add common parameters for good behavior
+                        max_tokens: 500,
+                        temperature: 0.7 
+                    })
+                });
+                
+                let data;
+                try {
+                    data = await res.json();
+                } catch(e) {
+                    throw new Error('Received non-JSON response (CORS/API error).');
+                }
 
-        try {
-            const botResp = await callFreeGPTApi(userText);
-            hideTyping(typing);
-            appendMessage(botResp, 'bot');
-        } catch(err) {
-            hideTyping(typing);
-            console.error("API Call Error:", err);
-            // Display error to the user
-            appendMessage(`🚨 Lex 01 cannot connect: **${err.message}**. This free API may be down. Please try again later.`,'bot');
-        } finally {
-            // Re-enable input
-            userInput.disabled = false; 
-            sendButton.disabled = false; 
-            userInput.focus();
+                if (!res.ok) {
+                    throw new Error(data.message || `API error with status ${res.status}.`);
+                }
+                
+                // The response structure is often text directly or nested, checking a few common paths
+                return data.completion || data.response || data.text || 'No specific response content was returned.';
+
+            } catch(err) {
+                // Return a failure message that helps us debug
+                throw new Error(err.message || 'Network failed or API service is unreachable (CORS/Server down).');
+            }
         }
-    }
 
-    /**
-     * Initial message display on page load.
-     */
-    function initialGreeting() {
-        // Display the required welcome message immediately
-        appendMessage(`Hey! I'm **Lex 01 🎀✨**, Abhi's AI assistant! Ask me about Abhi's projects, skills, or anything! 🐾`,'bot');
-    }
+        /**
+         * Main function to handle user input and API call.
+         */
+        async function sendMessage() {
+            const userText = userInput.value.trim();
+            if (!userText) return;
 
-    // --- Event Listeners ---
-    userInput.addEventListener('keypress', function(event) {
-        // Call sendMessage() when 'Enter' key is pressed
-        if (event.key === 'Enter') sendMessage();
-    });
-    
-    // Call sendMessage() when the send button is clicked
-    sendButton.addEventListener('click', sendMessage);
+            // 1. Clear input and disable UI
+            userInput.value = ''; 
+            userInput.disabled = true; 
+            sendButton.disabled = true;
 
-    // Start the application after the document loads
-    window.onload = initialGreeting;
-</script>
+            // 2. Display user message
+            appendMessage(userText, 'user');
+            
+            // 3. Show typing indicator
+            const indicator = showTypingIndicator();
+
+            try {
+                // 4. Call the external API
+                const botResp = await callFreeGPTApi(userText);
+                
+                // 5. Append Bot Message
+                hideTypingIndicator(indicator);
+                appendMessage(botResp, 'bot');
+            } catch(err) {
+                // 6. Handle Error
+                hideTypingIndicator(indicator);
+                console.error("API Call Error:", err);
+                // Display a clear error message to the user
+                appendMessage(`🚨 Lex 01 cannot connect: **${err.message}**. This free API may be down or restricted. Please try again later.`, 'bot');
+            } finally {
+                // 7. Re-enable UI
+                userInput.disabled = false; 
+                sendButton.disabled = false; 
+                userInput.focus();
+            }
+        }
+
+        /**
+         * Initial welcome message from Lex 01.
+         */
+        function initialGreeting() {
+            const welcomeText = "Hey! I'm **Lex 01 🎀✨**, Abhi's AI assistant, currently running with **GPT AI** API. Ask me about Abhi's **skills** or **projects**! 🐾";
+            appendMessage(welcomeText, 'bot');
+        }
+
+        // Start the application after the document loads
+        window.onload = () => {
+             initialGreeting();
+             userInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') sendMessage();
+            });
+            sendButton.addEventListener('click', sendMessage);
+        };
+    </script>
 </body>
 </html>
 
