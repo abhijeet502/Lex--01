@@ -10,6 +10,12 @@
         /* Custom styles for a modern, mobile-friendly chat experience */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         
+        /* FIX: Ensure HTML and Body use full viewport height */
+        html, body {
+            height: 100%; 
+            margin: 0;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(180deg, #ffe4e6 0%, #fbcfe8 100%); 
@@ -17,13 +23,17 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            /* Ensure body uses flex properties correctly */
+            box-sizing: border-box;
         }
         #chat-container {
             max-width: 600px;
             width: 100%;
             display: flex;
             flex-direction: column;
-            flex-grow: 1;
+            flex-grow: 1; 
+            /* FIX: Constrain height to viewport minus margins (4rem total margin) */
+            max-height: calc(100vh - 4rem); 
             background: white;
             box-shadow: 0 8px 30px rgba(219, 39, 119, 0.2); 
             border-radius: 1.5rem; 
@@ -110,7 +120,8 @@
             100% { opacity: 1; }
         }
         footer {
-            margin-top: auto;
+            /* Fix: Add a small margin to separate from the chat container */
+            margin-top: 1rem;
             padding: 1rem;
             text-align: center;
             width: 100%;
@@ -121,10 +132,10 @@
 </head>
 <body class="min-h-screen flex flex-col items-center">
 
-    <div id="chat-container" class="mt-4 md:mt-8 mb-4">
+    <div id="chat-container">
         <header class="p-4 bg-pink-300 text-rose-900 text-center rounded-t-2xl">
             <h1 class="text-3xl font-extrabold tracking-tight text-pink-100 bg-rose-900 inline-block px-3 py-1 rounded-full shadow-lg">Hey I am Lex 01 🎀✨</h1>
-            <p class="text-sm opacity-90 mt-1">Named after Abhi's dog, currently running in **LLM Demo Mode**. Ask me anything! 🐾</p>
+            <p class="text-sm opacity-90 mt-1">Named after Abhi's dog, currently running in **Ultimate LLM Demo Mode**. Ask me anything! 🐾</p>
         </header>
 
         <div id="chat-window">
@@ -166,7 +177,7 @@
         
         // --- DEMO RESPONSES ---
         const DEMO_RESPONSES = [
-            // --- STRICTLY PORTFOLIO/SKILL ANSWERS (No personal story) ---
+            // --- STRICTLY PORTFOLIO/SKILL ANSWERS ---
             {
                 keywords: ["skill", "expertise", "knowledge", "stack", "tech", "technology", "code"],
                 response: "Abhi's technical prowess is super impressive! His core skills are **React, Next.js, and Tailwind CSS** for the frontend, with **Node.js/Express** and **MongoDB/PostgreSQL** handling the backend. He builds everything with modern, scalable architecture! His favorite language right now is **JavaScript** because of its flexibility.",
@@ -178,20 +189,32 @@
                 delay: 2500
             },
 
-            // --- GENERAL LLM-LIKE ANSWERS (Abstract/Conceptual) ---
+            // --- HIGH-LEVEL PROBLEM SOLVING (LLM EMULATION) ---
             {
-                keywords: ["problem", "solution", "solve", "help", "advice", "what is"],
-                response: "I'm happy to help you think through a tough problem! The best way to approach any complex issue, whether in code or life, is to first **break it down** into its smallest possible components. Analyze each piece individually, test solutions, and then reassemble the final answer. This logical approach is key to success! What topic are you exploring?",
-                delay: 3000
+                keywords: ["problem", "solution", "solve", "help", "advice", "tough", "resolve"],
+                response: "I can help you construct a solution framework! Any complex problem, from debugging a recursive function to managing a large project, requires a structured approach. Here is the **Five-Step Analytical Framework:**\n\n1. **Define the Scope:** Clearly state the problem and the desired outcome (the 'solved' state).\n2. **Decomposition:** Break the problem down into 3-5 smallest, independent components. Isolate the variables.\n3. **Hypothesize & Test:** For each component, propose a solution and test it rigorously.\n4. **Iterate & Optimize:** If a test fails, refine the hypothesis. If it succeeds, look for ways to make the solution more efficient.\n5. **Document:** Finalize the solution and document the steps for future reference. \n\nThis logical, component-based approach is exactly what Abhi uses to build his full-stack applications! What problem are you facing right now?",
+                delay: 4500 // Longest delay for detailed, high-quality response
+            },
+            {
+                keywords: ["math", "logic", "calculate", "equation", "proof"],
+                response: "Ah, a challenge in pure logic! While I cannot run live calculations, I can outline the steps needed for any complex proof or equation. **The foundational rule is to state all axioms and constraints first.** Then, define your target variable. Use substitution and simplification to isolate that variable, making sure to track every state change. This is analogous to how **state management in React** works—predictable, tracked changes leading to a reliable final output. Do you have a specific proof you're working on?",
+                delay: 3800
+            },
+            
+            // --- GENERAL LLM-LIKE ANSWERS (Longer, more detailed, abstract advice) ---
+            {
+                keywords: ["life", "meaning", "future", "concept", "why"],
+                response: "That's a deeply philosophical question! From an analytical standpoint, 'meaning' is often the narrative we construct from patterns of behavior and consequences. The **future**, however, is purely probabilistic—it's determined by the millions of small choices made now. Abhi embraces this by continuously learning and adapting his **tech stack**, knowing that constant change is the only certainty in the field of web development. Is there a specific **concept or technology** you want to discuss?",
+                delay: 4000
             },
             {
                 keywords: ["tell me a fact", "science", "history", "fun"],
-                response: "As an LLM-emulating assistant, here's a random fact for you! Did you know that the **total weight of all the ants on Earth is estimated to be greater than the total weight of all humans**? Nature is amazing! Now, want to know a fun fact about Abhi's coding projects? 🐜",
-                delay: 2800
+                response: "The concept of 'why' drives all scientific inquiry! Here's an interesting fact: The **Internet's total weight is estimated to be about the weight of a single strawberry**. That incredibly complex, vast, digital network relies on tiny particles of light and electricity. It's a great metaphor for powerful systems built from small, efficient components—much like Abhi building complex apps from simple **React components**. Ask me about a specific **programming concept**! 🍓",
+                delay: 3800
             },
             {
-                keywords: ["explain", "meaning", "define"],
-                response: "Certainly! To truly understand a concept, we must define it. Please specify the term or idea you're interested in. For example, if you ask me to define **React**, I can tell you it's a declarative, component-based JavaScript library for building user interfaces! I await your precise query! 🧐",
+                keywords: ["explain", "define", "what is"],
+                response: "Certainly! To truly understand a concept, we must define it in context. Please specify the term or idea you're interested in. For example, if you ask me to define **React**, I can tell you it's a declarative, component-based JavaScript library for building user interfaces! I await your precise query! 🧐",
                 delay: 2500
             },
 
@@ -202,15 +225,15 @@
                 delay: 3000
             },
             
-            // --- CHIT-CHAT ANSWERS (No personal story) ---
+            // --- CHIT-CHAT ANSWERS ---
             {
-                keywords: ["cheer up", "sad", "motivate", "good day", "love", "awesome", "great"],
+                keywords: ["cheer up", "sad", "motivate", "good day", "love", "awesome", "great", "thanks"],
                 response: "Aww, never fear! Remember that even small progress is still progress. You are doing great, and your potential is limitless! Have a wonderful, sparkling day! ✨",
                 delay: 1800
             },
             {
-                keywords: ["hello", "hi", "hey", "sup"],
-                response: "Hello there! I'm Lex 01, ready to help you with any questions about Abhi's work! What can I fetch for you today? 🐾",
+                keywords: ["hello", "hi", "hey", "sup", "how are you"],
+                response: "Hello there! I'm Lex 01, performing optimally and ready to help you with any questions about Abhi's work! What can I fetch for you today? 🐾",
                 delay: 1000
             },
             {
@@ -303,7 +326,7 @@
             indicatorDiv.classList.add('bot-message', 'shadow-sm', 'flex', 'items-center', 'space-x-2', 'p-3');
             
             indicatorDiv.innerHTML = `
-                <span class="font-bold text-rose-800">Lex 01 is typing...</span>
+                <span class="font-bold text-rose-800">Lex 01 is calculating the optimal solution...</span>
                 <div class="dot-flashing"></div>
             `;
             indicatorRow.appendChild(indicatorDiv);
@@ -334,11 +357,10 @@
             }
             
             // Default Fallback Response - Redirects conversation smartly
-            // This is the generic answer when no keyword matches.
             const defaultResponses = [
-                { response: "That's a bit outside my knowledge base! As Lex 01, I specialize in **programming, solutions, and Abhi's portfolio**. Try asking me about **React**, **Tailwind CSS**, or one of his projects! 🎀", delay: 2200 },
-                { response: "Hmm, I'm not sure about that one! I can, however, provide detailed information on **coding principles** and **web development**. What kind of solution are you looking for? 🐾", delay: 2000 },
-                { response: "I can't answer that specific query, but I can help you define the steps to find the solution yourself! Every problem requires logic. Should we talk about **logic in JavaScript**? ✨", delay: 1800 }
+                { response: "That's an interesting topic! As a dedicated assistant, I specialize in **programming, abstract problem-solving, and Abhi's technical work**. I can offer highly detailed explanations in those areas. Can I define a **coding concept** for you instead? 💡", delay: 2800 },
+                { response: "I currently have limited knowledge outside of my primary function, which is to discuss **Abhi's skills and projects**. However, I can analyze the logic behind your request! Try asking me about **clean code** or **React best practices**! 🐾", delay: 3000 },
+                { response: "My knowledge is primarily focused on **Full-Stack Development, UI/UX principles, and the structure of this portfolio**. While I can't answer that specific query, I can provide a detailed breakdown of Abhi's **tech stack** or **project architecture**. What would you like to explore?", delay: 2500 }
             ];
             
             // Pick a random default response
@@ -394,7 +416,7 @@
          */
         function initialGreeting() {
             // Display the required welcome message immediately
-            const welcomeText = "Hey! I'm **Lex 01 🎀✨**, Abhi's personal AI assistant, running in **LLM Demo Mode**. Ask me anything—I can discuss general **solutions**, **coding concepts**, or **Abhi's journey**! 🐾";
+            const welcomeText = "Hey! I'm **Lex 01 🎀✨**, Abhi's personal AI assistant, running in **Ultimate LLM Demo Mode**. I can provide detailed **solution frameworks**, **coding concepts**, or share **Abhi's story**! What tough problem can I analyze for you? 🐾";
             appendMessage(welcomeText, 'bot');
         }
 
