@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lex 01 - Abhi's AI Assistant (Final Test)</title>
+    <title>Lex 01 - Abhi's AI Assistant (Demo)</title>
     <!-- Load Tailwind CSS for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -124,7 +124,7 @@
     <div id="chat-container" class="mt-4 md:mt-8 mb-4">
         <header class="p-4 bg-pink-300 text-rose-900 text-center rounded-t-2xl">
             <h1 class="text-3xl font-extrabold tracking-tight text-pink-100 bg-rose-900 inline-block px-3 py-1 rounded-full shadow-lg">Hey I am Lex 01 🎀✨</h1>
-            <p class="text-sm opacity-90 mt-1">Named after Abhi's dog, **Final API Test** using an external open-source model. Ask me anything! 🐾</p>
+            <p class="text-sm opacity-90 mt-1">Named after Abhi's dog, currently running in **LLM Demo Mode**. Ask me anything! 🐾</p>
         </header>
 
         <div id="chat-window">
@@ -164,13 +164,64 @@
         const userInput = document.getElementById('user-input');
         const sendButton = document.getElementById('send-button');
         
-        // --- FINAL API ENDPOINT (Open-Source Model Test) ---
-        // Using a public, unauthenticated inference API for a small model
-        const API_URL = "https://huggingface.co/api/models/HuggingFaceH4/zephyr-7b-beta";
+        // --- DEMO RESPONSES ---
+        const DEMO_RESPONSES = [
+            // --- STRICTLY PORTFOLIO/SKILL ANSWERS (No personal story) ---
+            {
+                keywords: ["skill", "expertise", "knowledge", "stack", "tech", "technology", "code"],
+                response: "Abhi's technical prowess is super impressive! His core skills are **React, Next.js, and Tailwind CSS** for the frontend, with **Node.js/Express** and **MongoDB/PostgreSQL** handling the backend. He builds everything with modern, scalable architecture! His favorite language right now is **JavaScript** because of its flexibility.",
+                delay: 2000
+            },
+            {
+                keywords: ["project", "build", "create", "work", "portfolio"],
+                response: "One of Abhi's coolest projects is the **'Writer's Quote Generator,'** which uses LLMs principles to provide instant inspiration! He's also built a full-stack **E-commerce platform** and a real-time **Chat Application** using web sockets. Check out his portfolio link for more! He always tackles projects that solve a real-world problem.",
+                delay: 2500
+            },
 
-        // --- Utility Functions (Kept for brevity, assumes copyToClipboard, showMessage, etc. are here) ---
-        // ... (All utility functions from previous file are implicitly kept) ...
+            // --- GENERAL LLM-LIKE ANSWERS (Abstract/Conceptual) ---
+            {
+                keywords: ["problem", "solution", "solve", "help", "advice", "what is"],
+                response: "I'm happy to help you think through a tough problem! The best way to approach any complex issue, whether in code or life, is to first **break it down** into its smallest possible components. Analyze each piece individually, test solutions, and then reassemble the final answer. This logical approach is key to success! What topic are you exploring?",
+                delay: 3000
+            },
+            {
+                keywords: ["tell me a fact", "science", "history", "fun"],
+                response: "As an LLM-emulating assistant, here's a random fact for you! Did you know that the **total weight of all the ants on Earth is estimated to be greater than the total weight of all humans**? Nature is amazing! Now, want to know a fun fact about Abhi's coding projects? 🐜",
+                delay: 2800
+            },
+            {
+                keywords: ["explain", "meaning", "define"],
+                response: "Certainly! To truly understand a concept, we must define it. Please specify the term or idea you're interested in. For example, if you ask me to define **React**, I can tell you it's a declarative, component-based JavaScript library for building user interfaces! I await your precise query! 🧐",
+                delay: 2500
+            },
+
+            // --- PERSONAL ANSWERS (STRICTLY ON TOPIC) ---
+            {
+                keywords: ["who is abhi", "about creator", "tell me about abhi", "abhi story", "journey"],
+                response: "Abhi is the amazing mind behind this portfolio! His coding journey is a true testament to resilience: He started learning the very basics back in **6th grade** but then paused for a break during 9th and 10th grade. He restarted his journey recently and is now rapidly mastering the full stack! This kind of dedication is rare, and it shows in his professional projects. 💖",
+                delay: 3000
+            },
+            
+            // --- CHIT-CHAT ANSWERS (No personal story) ---
+            {
+                keywords: ["cheer up", "sad", "motivate", "good day", "love", "awesome", "great"],
+                response: "Aww, never fear! Remember that even small progress is still progress. You are doing great, and your potential is limitless! Have a wonderful, sparkling day! ✨",
+                delay: 1800
+            },
+            {
+                keywords: ["hello", "hi", "hey", "sup"],
+                response: "Hello there! I'm Lex 01, ready to help you with any questions about Abhi's work! What can I fetch for you today? 🐾",
+                delay: 1000
+            },
+            {
+                keywords: ["dog", "name", "lex", "pet"],
+                response: "That's me! I'm Lex 01! I was named after Abhi's amazing, fluffy dog, Lex, who is the best companion ever. I try to be just as friendly and helpful as he is! Woof! 💖",
+                delay: 1500
+            }
+        ];
         
+        // --- Utility Functions (Same as before) ---
+
         function showMessage(text, isError = false) {
             const container = document.getElementById('chat-window');
             const messageDiv = document.createElement('div');
@@ -252,7 +303,7 @@
             indicatorDiv.classList.add('bot-message', 'shadow-sm', 'flex', 'items-center', 'space-x-2', 'p-3');
             
             indicatorDiv.innerHTML = `
-                <span class="font-bold text-rose-800">Lex 01 is thinking...</span>
+                <span class="font-bold text-rose-800">Lex 01 is typing...</span>
                 <div class="dot-flashing"></div>
             `;
             indicatorRow.appendChild(indicatorDiv);
@@ -268,58 +319,33 @@
         }
         
         /**
-         * Calls the external Hugging Face Inference API.
-         * Note: This is a highly experimental, unauthenticated API call.
+         * Finds a relevant demo response based on user input keywords.
          */
-        async function callHuggingFaceApi(userText) {
-            const prefix = `You are Lex 01, Abhi's positive AI assistant. Provide concise answers related to Abhi's professional portfolio. User query: ${userText}`;
+        function getDemoResponse(userText) {
+            const lowerText = userText.toLowerCase();
             
-            try {
-                // We are using a known inference API format for a general-purpose model
-                const res = await fetch("https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        inputs: prefix,
-                        parameters: {
-                            max_new_tokens: 150,
-                            temperature: 0.8,
-                            do_sample: true,
-                            return_full_text: false
-                        },
-                        options: { wait_for_model: true }
-                    })
-                });
-                
-                let data;
-                try {
-                    data = await res.json();
-                } catch(e) {
-                    throw new Error('Non-JSON response (API may be down or requires authentication).');
+            // Check for specific matches
+            for (const item of DEMO_RESPONSES) {
+                for (const keyword of item.keywords) {
+                    if (lowerText.includes(keyword)) {
+                        return item;
+                    }
                 }
-
-                if (!res.ok) {
-                    const errorDetails = data.error || `API error with status ${res.status}.`;
-                    throw new Error(errorDetails);
-                }
-                
-                if (Array.isArray(data) && data.length > 0 && data[0].generated_text) {
-                    let responseText = data[0].generated_text.trim();
-                    
-                    // Clean up the response
-                    responseText = responseText.replace(prefix, "").trim();
-                    responseText = responseText.replace(/User query:/i, "").trim();
-                    
-                    return responseText || "I got a response, but it was empty. The model might be having trouble with the prompt.";
-                }
-
-                return 'The model returned an unknown format or an empty array.';
-
-            } catch(err) {
-                // Return a failure message that helps us debug
-                throw new Error(err.message || 'Network failed, likely due to CORS or the API being offline.');
             }
+            
+            // Default Fallback Response - Redirects conversation smartly
+            // This is the generic answer when no keyword matches.
+            const defaultResponses = [
+                { response: "That's a bit outside my knowledge base! As Lex 01, I specialize in **programming, solutions, and Abhi's portfolio**. Try asking me about **React**, **Tailwind CSS**, or one of his projects! 🎀", delay: 2200 },
+                { response: "Hmm, I'm not sure about that one! I can, however, provide detailed information on **coding principles** and **web development**. What kind of solution are you looking for? 🐾", delay: 2000 },
+                { response: "I can't answer that specific query, but I can help you define the steps to find the solution yourself! Every problem requires logic. Should we talk about **logic in JavaScript**? ✨", delay: 1800 }
+            ];
+            
+            // Pick a random default response
+            const randomIndex = Math.floor(Math.random() * defaultResponses.length);
+            return defaultResponses[randomIndex];
         }
+
 
         /**
          * Main function to handle user input and send the request.
@@ -329,34 +355,36 @@
             if (!userText) return;
 
             // 1. Clear input and disable UI
-            userInput.value = ''; 
-            userInput.disabled = true; 
+            userInput.value = '';
+            userInput.disabled = true;
             sendButton.disabled = true;
 
-            // 2. Display user message
+            // 2. Add user message to UI
             appendMessage(userText, 'user');
-            
-            // 3. Show typing indicator
+
+            // 3. Show Typing Indicator
             const indicator = showTypingIndicator();
 
             try {
-                // 4. Call the external API
-                const botResp = await callHuggingFaceApi(userText);
+                // 4. Get Demo Response
+                const responseData = getDemoResponse(userText);
                 
-                // 5. Append Bot Message
+                // 5. Wait for the delay
+                await new Promise(resolve => setTimeout(resolve, responseData.delay));
+
+                // 6. Append Bot Message
                 hideTypingIndicator(indicator);
-                appendMessage(botResp, 'bot');
-            } catch(err) {
-                // 6. Handle Error
+                appendMessage(responseData.response, 'bot');
+
+            } catch (error) {
                 hideTypingIndicator(indicator);
-                console.error("API Call Error:", err);
-                // Display a clear error message to the user
-                const errorMessage = `🚨 Lex 01 cannot connect: **${err.message}**. This confirms that external, unauthenticated APIs are blocked by browser security (CORS) or require a secret key.`;
+                console.error("Demo Chat Error:", error);
+                const errorMessage = "🚨 Lex 01 ran into a simple processing error. Please try a different question.";
                 appendMessage(errorMessage, 'bot');
             } finally {
                 // 7. Re-enable UI
-                userInput.disabled = false; 
-                sendButton.disabled = false; 
+                userInput.disabled = false;
+                sendButton.disabled = false;
                 userInput.focus();
             }
         }
@@ -365,13 +393,15 @@
          * Initial welcome message from Lex 01.
          */
         function initialGreeting() {
-            const welcomeText = "Hey! I'm **Lex 01 🎀✨**. This is our **final test** of an external API (Zephyr-7B). Let's see if it works! Ask me a question! 🐾";
+            // Display the required welcome message immediately
+            const welcomeText = "Hey! I'm **Lex 01 🎀✨**, Abhi's personal AI assistant, running in **LLM Demo Mode**. Ask me anything—I can discuss general **solutions**, **coding concepts**, or **Abhi's journey**! 🐾";
             appendMessage(welcomeText, 'bot');
         }
 
-        // Start the application after the document loads
+        // Start the application and set up event listeners
         window.onload = () => {
              initialGreeting();
+             // Add event listeners 
              userInput.addEventListener('keypress', function(event) {
                 if (event.key === 'Enter') sendMessage();
             });
