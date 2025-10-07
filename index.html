@@ -124,7 +124,7 @@
     <div id="chat-container" class="mt-4 md:mt-8 mb-4">
         <header class="p-4 bg-pink-300 text-rose-900 text-center rounded-t-2xl">
             <h1 class="text-3xl font-extrabold tracking-tight text-pink-100 bg-rose-900 inline-block px-3 py-1 rounded-full shadow-lg">Hey I am Lex 01 🎀✨</h1>
-            <p class="text-sm opacity-90 mt-1">Named after Abhi's dog, currently running with **GPT AI** API. Ask me anything! 🐾</p>
+            <p class="text-sm opacity-90 mt-1">Named after Abhi's dog, currently running with **Hugging Face Bloom** API. Ask me anything! 🐾</p>
         </header>
 
         <div id="chat-window">
@@ -165,7 +165,7 @@
         const sendButton = document.getElementById('send-button');
         
         // --- UPDATED API ENDPOINT ---
-        const API_URL = "https://freegpt.one/api/completion";
+        const API_URL = "https://api-inference.huggingface.co/models/bigscience/bloom";
         
         // --- Utility Functions ---
 
@@ -250,7 +250,7 @@
             indicatorDiv.classList.add('bot-message', 'shadow-sm', 'flex', 'items-center', 'space-x-2', 'p-3');
             
             indicatorDiv.innerHTML = `
-                <span class="font-bold text-rose-800">Lex 01 is typing...</span>
+                <span class="font-bold text-rose-800">Lex 01 is thinking...</span>
                 <div class="dot-flashing"></div>
             `;
             indicatorRow.appendChild(indicatorDiv);
@@ -265,27 +265,34 @@
             }
         }
         
-        // --- UPDATED API CALL FUNCTION ---
+        // --- UPDATED API CALL FUNCTION for Hugging Face ---
         /**
-         * Calls the external freegpt.one API using a POST request.
+         * Calls the external Hugging Face Inference API.
          */
-        async function callFreeGPTApi(userText) {
+        async function callHuggingFaceApi(userText) {
             // Context/persona for the AI
-            const personaPrompt = `Act as Lex 01, Abhi's highly positive AI assistant. Your responses must be concise and relate to Abhi's professional portfolio (skills, projects, tech stack) or provide cheerful support. Always use the 🐾 emoji occasionally. User query: ${userText}`;
+            const prefix = `Act as Lex 01, Abhi's highly positive AI assistant. Your responses must be concise and relate to Abhi's professional portfolio (skills, projects, tech stack) or provide cheerful support. Always use the 🐾 emoji occasionally. User query: ${userText}\nLex 01 Response:`;
             
             try {
                 const res = await fetch(API_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
+                        // NOTE: API Key is usually required here (Authorization: Bearer <token>)
+                        // We are trying without one, hoping for anonymous public access.
                     },
                     body: JSON.stringify({
-                        // This API often uses 'prompt' or 'content' for the user message. 
-                        // We will use 'prompt' as it's common.
-                        prompt: personaPrompt,
-                        // Add common parameters for good behavior
-                        max_tokens: 500,
-                        temperature: 0.7 
+                        inputs: prefix,
+                        parameters: {
+                            max_new_tokens: 150,
+                            temperature: 0.8,
+                            do_sample: true,
+                            return_full_text: false // Only return the generated part
+                        },
+                        options: {
+                            // This option requests the server to wait longer if the model is loading
+                            wait_for_model: true
+                        }
                     })
                 });
                 
@@ -297,11 +304,28 @@
                 }
 
                 if (!res.ok) {
-                    throw new Error(data.message || `API error with status ${res.status}.`);
+                    // Hugging Face errors often contain a "error" field or just status.
+                    const errorDetails = data.error || `API error with status ${res.status}.`;
+                    throw new Error(errorDetails);
                 }
                 
-                // The response structure is often text directly or nested, checking a few common paths
-                return data.completion || data.response || data.text || 'No specific response content was returned.';
+                // Hugging Face returns an array of objects for text generation, e.g.,
+                // [{ generated_text: "..." }]
+                if (Array.isArray(data) && data.length > 0 && data[0].generated_text) {
+                    let responseText = data[0].generated_text.trim();
+                    
+                    // Clean up the response as LLMs sometimes repeat the prompt or formatting
+                    if (responseText.startsWith("Lex 01 Response:")) {
+                         responseText = responseText.substring("Lex 01 Response:".length).trim();
+                    }
+                    if (responseText.startsWith(userText)) {
+                         responseText = responseText.substring(userText.length).trim();
+                    }
+                    
+                    return responseText;
+                }
+
+                return 'The Hugging Face model returned an unknown format.';
 
             } catch(err) {
                 // Return a failure message that helps us debug
@@ -329,7 +353,7 @@
 
             try {
                 // 4. Call the external API
-                const botResp = await callFreeGPTApi(userText);
+                const botResp = await callHuggingFaceApi(userText);
                 
                 // 5. Append Bot Message
                 hideTypingIndicator(indicator);
@@ -339,7 +363,8 @@
                 hideTypingIndicator(indicator);
                 console.error("API Call Error:", err);
                 // Display a clear error message to the user
-                appendMessage(`🚨 Lex 01 cannot connect: **${err.message}**. This free API may be down or restricted. Please try again later.`, 'bot');
+                const errorMessage = `🚨 Lex 01 cannot connect: **${err.message}**. This free API (Hugging Face) likely requires an API token or is blocked by CORS.`;
+                appendMessage(errorMessage, 'bot');
             } finally {
                 // 7. Re-enable UI
                 userInput.disabled = false; 
@@ -352,7 +377,7 @@
          * Initial welcome message from Lex 01.
          */
         function initialGreeting() {
-            const welcomeText = "Hey! I'm **Lex 01 🎀✨**, Abhi's AI assistant, currently running with **GPT AI** API. Ask me about Abhi's **skills** or **projects**! 🐾";
+            const welcomeText = "Hey! I'm **Lex 01 🎀✨**, Abhi's AI assistant, currently trying out the **Hugging Face Bloom** API. Ask me a question about anything! 🐾";
             appendMessage(welcomeText, 'bot');
         }
 
