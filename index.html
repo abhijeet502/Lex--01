@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lex 01 - Abhi's AI Assistant</title>
+    <title>Lex 01 - Abhi's AI Assistant (Final Test)</title>
     <!-- Load Tailwind CSS for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -124,7 +124,7 @@
     <div id="chat-container" class="mt-4 md:mt-8 mb-4">
         <header class="p-4 bg-pink-300 text-rose-900 text-center rounded-t-2xl">
             <h1 class="text-3xl font-extrabold tracking-tight text-pink-100 bg-rose-900 inline-block px-3 py-1 rounded-full shadow-lg">Hey I am Lex 01 🎀✨</h1>
-            <p class="text-sm opacity-90 mt-1">Named after Abhi's dog, currently running with **Hugging Face Bloom** API. Ask me anything! 🐾</p>
+            <p class="text-sm opacity-90 mt-1">Named after Abhi's dog, **Final API Test** using an external open-source model. Ask me anything! 🐾</p>
         </header>
 
         <div id="chat-window">
@@ -164,11 +164,13 @@
         const userInput = document.getElementById('user-input');
         const sendButton = document.getElementById('send-button');
         
-        // --- UPDATED API ENDPOINT ---
-        const API_URL = "https://api-inference.huggingface.co/models/bigscience/bloom";
-        
-        // --- Utility Functions ---
+        // --- FINAL API ENDPOINT (Open-Source Model Test) ---
+        // Using a public, unauthenticated inference API for a small model
+        const API_URL = "https://huggingface.co/api/models/HuggingFaceH4/zephyr-7b-beta";
 
+        // --- Utility Functions (Kept for brevity, assumes copyToClipboard, showMessage, etc. are here) ---
+        // ... (All utility functions from previous file are implicitly kept) ...
+        
         function showMessage(text, isError = false) {
             const container = document.getElementById('chat-window');
             const messageDiv = document.createElement('div');
@@ -265,34 +267,27 @@
             }
         }
         
-        // --- UPDATED API CALL FUNCTION for Hugging Face ---
         /**
          * Calls the external Hugging Face Inference API.
+         * Note: This is a highly experimental, unauthenticated API call.
          */
         async function callHuggingFaceApi(userText) {
-            // Context/persona for the AI
-            const prefix = `Act as Lex 01, Abhi's highly positive AI assistant. Your responses must be concise and relate to Abhi's professional portfolio (skills, projects, tech stack) or provide cheerful support. Always use the 🐾 emoji occasionally. User query: ${userText}\nLex 01 Response:`;
+            const prefix = `You are Lex 01, Abhi's positive AI assistant. Provide concise answers related to Abhi's professional portfolio. User query: ${userText}`;
             
             try {
-                const res = await fetch(API_URL, {
+                // We are using a known inference API format for a general-purpose model
+                const res = await fetch("https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta", {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                        // NOTE: API Key is usually required here (Authorization: Bearer <token>)
-                        // We are trying without one, hoping for anonymous public access.
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         inputs: prefix,
                         parameters: {
                             max_new_tokens: 150,
                             temperature: 0.8,
                             do_sample: true,
-                            return_full_text: false // Only return the generated part
+                            return_full_text: false
                         },
-                        options: {
-                            // This option requests the server to wait longer if the model is loading
-                            wait_for_model: true
-                        }
+                        options: { wait_for_model: true }
                     })
                 });
                 
@@ -300,41 +295,34 @@
                 try {
                     data = await res.json();
                 } catch(e) {
-                    throw new Error('Received non-JSON response (CORS/API error).');
+                    throw new Error('Non-JSON response (API may be down or requires authentication).');
                 }
 
                 if (!res.ok) {
-                    // Hugging Face errors often contain a "error" field or just status.
                     const errorDetails = data.error || `API error with status ${res.status}.`;
                     throw new Error(errorDetails);
                 }
                 
-                // Hugging Face returns an array of objects for text generation, e.g.,
-                // [{ generated_text: "..." }]
                 if (Array.isArray(data) && data.length > 0 && data[0].generated_text) {
                     let responseText = data[0].generated_text.trim();
                     
-                    // Clean up the response as LLMs sometimes repeat the prompt or formatting
-                    if (responseText.startsWith("Lex 01 Response:")) {
-                         responseText = responseText.substring("Lex 01 Response:".length).trim();
-                    }
-                    if (responseText.startsWith(userText)) {
-                         responseText = responseText.substring(userText.length).trim();
-                    }
+                    // Clean up the response
+                    responseText = responseText.replace(prefix, "").trim();
+                    responseText = responseText.replace(/User query:/i, "").trim();
                     
-                    return responseText;
+                    return responseText || "I got a response, but it was empty. The model might be having trouble with the prompt.";
                 }
 
-                return 'The Hugging Face model returned an unknown format.';
+                return 'The model returned an unknown format or an empty array.';
 
             } catch(err) {
                 // Return a failure message that helps us debug
-                throw new Error(err.message || 'Network failed or API service is unreachable (CORS/Server down).');
+                throw new Error(err.message || 'Network failed, likely due to CORS or the API being offline.');
             }
         }
 
         /**
-         * Main function to handle user input and API call.
+         * Main function to handle user input and send the request.
          */
         async function sendMessage() {
             const userText = userInput.value.trim();
@@ -363,7 +351,7 @@
                 hideTypingIndicator(indicator);
                 console.error("API Call Error:", err);
                 // Display a clear error message to the user
-                const errorMessage = `🚨 Lex 01 cannot connect: **${err.message}**. This free API (Hugging Face) likely requires an API token or is blocked by CORS.`;
+                const errorMessage = `🚨 Lex 01 cannot connect: **${err.message}**. This confirms that external, unauthenticated APIs are blocked by browser security (CORS) or require a secret key.`;
                 appendMessage(errorMessage, 'bot');
             } finally {
                 // 7. Re-enable UI
@@ -377,7 +365,7 @@
          * Initial welcome message from Lex 01.
          */
         function initialGreeting() {
-            const welcomeText = "Hey! I'm **Lex 01 🎀✨**, Abhi's AI assistant, currently trying out the **Hugging Face Bloom** API. Ask me a question about anything! 🐾";
+            const welcomeText = "Hey! I'm **Lex 01 🎀✨**. This is our **final test** of an external API (Zephyr-7B). Let's see if it works! Ask me a question! 🐾";
             appendMessage(welcomeText, 'bot');
         }
 
