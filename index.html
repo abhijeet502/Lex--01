@@ -175,76 +175,10 @@
         const userInput = document.getElementById('user-input');
         const sendButton = document.getElementById('send-button');
         
-        // --- DEMO RESPONSES ---
-        const DEMO_RESPONSES = [
-            // --- STRICTLY PORTFOLIO/SKILL ANSWERS ---
-            {
-                keywords: ["skill", "expertise", "knowledge", "stack", "tech", "technology", "code"],
-                response: "Abhi's technical prowess is super impressive! His core skills are **React, Next.js, and Tailwind CSS** for the frontend, with **Node.js/Express** and **MongoDB/PostgreSQL** handling the backend. He builds everything with modern, scalable architecture! His favorite language right now is **JavaScript** because of its flexibility.",
-                delay: 2000
-            },
-            {
-                keywords: ["project", "build", "create", "work", "portfolio"],
-                response: "One of Abhi's coolest projects is the **'Writer's Quote Generator,'** which uses LLMs principles to provide instant inspiration! He's also built a full-stack **E-commerce platform** and a real-time **Chat Application** using web sockets. Check out his portfolio link for more! He always tackles projects that solve a real-world problem.",
-                delay: 2500
-            },
-
-            // --- HIGH-LEVEL PROBLEM SOLVING (LLM EMULATION) ---
-            {
-                keywords: ["problem", "solution", "solve", "help", "advice", "tough", "resolve"],
-                response: "I can help you construct a solution framework! Any complex problem, from debugging a recursive function to managing a large project, requires a structured approach. Here is the **Five-Step Analytical Framework:**\n\n1. **Define the Scope:** Clearly state the problem and the desired outcome (the 'solved' state).\n2. **Decomposition:** Break the problem down into 3-5 smallest, independent components. Isolate the variables.\n3. **Hypothesize & Test:** For each component, propose a solution and test it rigorously.\n4. **Iterate & Optimize:** If a test fails, refine the hypothesis. If it succeeds, look for ways to make the solution more efficient.\n5. **Document:** Finalize the solution and document the steps for future reference. \n\nThis logical, component-based approach is exactly what Abhi uses to build his full-stack applications! What problem are you facing right now?",
-                delay: 4500 // Longest delay for detailed, high-quality response
-            },
-            {
-                keywords: ["math", "logic", "calculate", "equation", "proof"],
-                response: "Ah, a challenge in pure logic! While I cannot run live calculations, I can outline the steps needed for any complex proof or equation. **The foundational rule is to state all axioms and constraints first.** Then, define your target variable. Use substitution and simplification to isolate that variable, making sure to track every state change. This is analogous to how **state management in React** works—predictable, tracked changes leading to a reliable final output. Do you have a specific proof you're working on?",
-                delay: 3800
-            },
-            
-            // --- GENERAL LLM-LIKE ANSWERS (Longer, more detailed, abstract advice) ---
-            {
-                keywords: ["life", "meaning", "future", "concept", "why"],
-                response: "That's a deeply philosophical question! From an analytical standpoint, 'meaning' is often the narrative we construct from patterns of behavior and consequences. The **future**, however, is purely probabilistic—it's determined by the millions of small choices made now. Abhi embraces this by continuously learning and adapting his **tech stack**, knowing that constant change is the only certainty in the field of web development. Is there a specific **concept or technology** you want to discuss?",
-                delay: 4000
-            },
-            {
-                keywords: ["tell me a fact", "science", "history", "fun"],
-                response: "The concept of 'why' drives all scientific inquiry! Here's an interesting fact: The **Internet's total weight is estimated to be about the weight of a single strawberry**. That incredibly complex, vast, digital network relies on tiny particles of light and electricity. It's a great metaphor for powerful systems built from small, efficient components—much like Abhi building complex apps from simple **React components**. Ask me about a specific **programming concept**! 🍓",
-                delay: 3800
-            },
-            {
-                keywords: ["explain", "define", "what is"],
-                response: "Certainly! To truly understand a concept, we must define it in context. Please specify the term or idea you're interested in. For example, if you ask me to define **React**, I can tell you it's a declarative, component-based JavaScript library for building user interfaces! I await your precise query! 🧐",
-                delay: 2500
-            },
-
-            // --- PERSONAL ANSWERS (STRICTLY ON TOPIC) ---
-            {
-                keywords: ["who is abhi", "about creator", "tell me about abhi", "abhi story", "journey"],
-                response: "Abhi is the amazing mind behind this portfolio! His coding journey is a true testament to resilience: He started learning the very basics back in **6th grade** but then paused for a break during 9th and 10th grade. He restarted his journey recently and is now rapidly mastering the full stack! This kind of dedication is rare, and it shows in his professional projects. 💖",
-                delay: 3000
-            },
-            
-            // --- CHIT-CHAT ANSWERS ---
-            {
-                keywords: ["cheer up", "sad", "motivate", "good day", "love", "awesome", "great", "thanks"],
-                response: "Aww, never fear! Remember that even small progress is still progress. You are doing great, and your potential is limitless! Have a wonderful, sparkling day! ✨",
-                delay: 1800
-            },
-            {
-                keywords: ["hello", "hi", "hey", "sup", "how are you"],
-                response: "Hello there! I'm Lex 01, performing optimally and ready to help you with any questions about Abhi's work! What can I fetch for you today? 🐾",
-                delay: 1000
-            },
-            {
-                keywords: ["dog", "name", "lex", "pet"],
-                response: "That's me! I'm Lex 01! I was named after Abhi's amazing, fluffy dog, Lex, who is the best companion ever. I try to be just as friendly and helpful as he is! Woof! 💖",
-                delay: 1500
-            }
-        ];
+        // Conversation history for context (sent to proxy each time)
+        let conversationHistory = [];
         
-        // --- Utility Functions (Same as before) ---
-
+        // --- Utility Functions (Unchanged from original) ---
         function showMessage(text, isError = false) {
             const container = document.getElementById('chat-window');
             const messageDiv = document.createElement('div');
@@ -340,37 +274,34 @@
                 indicator.remove();
             }
         }
-        
-        /**
-         * Finds a relevant demo response based on user input keywords.
-         */
-        function getDemoResponse(userText) {
-            const lowerText = userText.toLowerCase();
-            
-            // Check for specific matches
-            for (const item of DEMO_RESPONSES) {
-                for (const keyword of item.keywords) {
-                    if (lowerText.includes(keyword)) {
-                        return item;
-                    }
+
+        // NEW: Calls the Vercel proxy API (/api/chat) instead of Groq directly
+        async function getProxyResponse(userText) {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: userText,
+                    history: conversationHistory  // Send history for context
+                })
+            });
+
+            if (!response.ok) {
+                if (response.status === 429) {
+                    throw new Error('Rate limit reached. Please wait a moment and try again.');
                 }
+                throw new Error(`Proxy error: ${response.status}`);
             }
-            
-            // Default Fallback Response - Redirects conversation smartly
-            const defaultResponses = [
-                { response: "That's an interesting topic! As a dedicated assistant, I specialize in **programming, abstract problem-solving, and Abhi's technical work**. I can offer highly detailed explanations in those areas. Can I define a **coding concept** for you instead? 💡", delay: 2800 },
-                { response: "I currently have limited knowledge outside of my primary function, which is to discuss **Abhi's skills and projects**. However, I can analyze the logic behind your request! Try asking me about **clean code** or **React best practices**! 🐾", delay: 3000 },
-                { response: "My knowledge is primarily focused on **Full-Stack Development, UI/UX principles, and the structure of this portfolio**. While I can't answer that specific query, I can provide a detailed breakdown of Abhi's **tech stack** or **project architecture**. What would you like to explore?", delay: 2500 }
-            ];
-            
-            // Pick a random default response
-            const randomIndex = Math.floor(Math.random() * defaultResponses.length);
-            return defaultResponses[randomIndex];
+
+            const data = await response.json();
+            return data.reply;  // Returns the bot's response
         }
 
-
         /**
-         * Main function to handle user input and send the request.
+         * Main function to handle user input.
+         * UPDATED: Uses proxy for secure Groq calls; manages history client-side.
          */
         async function sendMessage() {
             const userText = userInput.value.trim();
@@ -381,28 +312,31 @@
             userInput.disabled = true;
             sendButton.disabled = true;
 
-            // 2. Add user message to UI
+            // 2. Add user message to UI and history
             appendMessage(userText, 'user');
+            conversationHistory.push({ role: 'user', content: userText });
 
             // 3. Show Typing Indicator
             const indicator = showTypingIndicator();
 
             try {
-                // 4. Get Demo Response
-                const responseData = getDemoResponse(userText);
+                // 4. Get response from proxy (which calls Groq server-side)
+                const botReply = await getProxyResponse(userText);
                 
-                // 5. Wait for the delay
-                await new Promise(resolve => setTimeout(resolve, responseData.delay));
-
-                // 6. Append Bot Message
+                // 5. Hide indicator and add bot message
                 hideTypingIndicator(indicator);
-                appendMessage(responseData.response, 'bot');
+                appendMessage(botReply, 'bot');
+
+                // 6. Add bot reply to history
+                conversationHistory.push({ role: 'assistant', content: botReply });
 
             } catch (error) {
+                console.error('Proxy Error:', error);
                 hideTypingIndicator(indicator);
-                console.error("Demo Chat Error:", error);
-                const errorMessage = "🚨 Lex 01 ran into a simple processing error. Please try a different question.";
-                appendMessage(errorMessage, 'bot');
+                
+                // Fallback (unchanged style)
+                const fallbackReply = 'Oops! I encountered a hiccup while calculating that. Please try again—maybe ask about Abhi\'s **React projects** or a coding tip? 🐾';
+                appendMessage(fallbackReply, 'bot');
             } finally {
                 // 7. Re-enable UI
                 userInput.disabled = false;
@@ -411,25 +345,10 @@
             }
         }
 
-        /**
-         * Initial welcome message from Lex 01.
-         */
-        function initialGreeting() {
-            // Display the required welcome message immediately
-            const welcomeText = "Hey! I'm **Lex 01 🎀✨**, Abhi's personal AI assistant, running in **Ultimate LLM Demo Mode**. I can provide detailed **solution frameworks**, **coding concepts**, or share **Abhi's story**! What tough problem can I analyze for you? 🐾";
-            appendMessage(welcomeText, 'bot');
-        }
-
-        // Start the application and set up event listeners
-        window.onload = () => {
-             initialGreeting();
-             // Add event listeners 
-             userInput.addEventListener('keypress', function(event) {
-                if (event.key === 'Enter') sendMessage();
-            });
-            sendButton.addEventListener('click', sendMessage);
-        };
+        // Optional: Welcome message on load (fits your demo mode)
+        window.addEventListener('load', () => {
+            appendMessage('Hello! I\'m Lex 01, ready to chat about Abhi\'s world of code and creativity. What\'s on your mind? 🎀', 'bot');
+        });
     </script>
 </body>
 </html>
-
